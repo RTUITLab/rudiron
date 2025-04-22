@@ -15,6 +15,7 @@ import { useBlockContext } from "../components/Blocks/Var/BlockContext"; // Им
 
 
 import "../App.css";
+import Aside from "../components/Aside";
 
 const Workspace: React.FC = () => {
     const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -652,16 +653,6 @@ const Workspace: React.FC = () => {
 
     return (
         <div className="app-container" style={{ display: "flex", height: "100vh" }}>
-            <Menu
-                blocks={blockDefinitions.map((def) => ({
-                    id: def.id,
-                    label: def.label,
-                    createBlock: def.createBlock,
-                }))}
-                onAddBlockToWorkspace={(block: JSX.Element) =>
-                    addBlockToWorkspace(block, { x: 200, y: 200 })
-                }
-            />
             <div
   ref={workspaceRef} // Attach the ref to the workspace div
   className={`workspace ${isWorkspaceHovered ? "drag-over" : ""}`}

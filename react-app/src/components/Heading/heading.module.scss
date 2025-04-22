@@ -1,0 +1,17 @@
+.Heading {
+  width: 100%;
+  padding: 16px;
+  outline: 1px solid #444444;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  > h1
+  {
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+    width: 100%;
+    text-align: left;
+  }
+}

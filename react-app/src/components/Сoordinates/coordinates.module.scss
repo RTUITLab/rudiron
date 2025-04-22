@@ -1,0 +1,26 @@
+.Сoordinates
+{
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #2c2c2c;
+  border: 1px solid #444444;
+  z-index: 10000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+  > div
+  {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+  }
+  * {
+    font-size: 16px;
+    font-weight: normal;
+  }
+}

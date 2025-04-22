@@ -93,7 +93,7 @@ const VariableBlock: React.FC<VariableBlockProps> = ({ id, position, onMove, cod
                         ))}
                     </select>
 
-                    {/* Input for variable name */}
+                    {/* Search for variable name */}
                     <label className="variable-label">Тип данных</label>
                     <input
                         type="text"

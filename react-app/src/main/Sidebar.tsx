@@ -11,6 +11,7 @@ const Menu: React.FC<MenuProps> = ({ blocks, onAddBlockToWorkspace }) => {
     const [collapsedCategories, setCollapsedCategories] = useState<{
         [key: string]: boolean;
     }>({
+        "Dev": false,
         "Условия": false,
         "Основные функции": false,
         "Переменные": false,
@@ -22,9 +23,10 @@ const Menu: React.FC<MenuProps> = ({ blocks, onAddBlockToWorkspace }) => {
 
     // Типизация категорий
     const categories: Record<
-    "Условия" | "Основные функции" | "Переменные" | "Чтение/Запись" | "Монитор порта" | "Циклы",
+    "Dev" | "Условия" | "Основные функции" | "Переменные" | "Чтение/Запись" | "Монитор порта" | "Циклы",
     { blocks: string[]; color: string }
 > = {
+        "Dev": {blocks: ["new"], color: "#ffffff"},
     "Условия": { blocks: ["delay", "if"], color: "#D13A9A" }, // pink
     "Основные функции": { blocks: ["setup", "loop"], color: "#7e57c2" }, // Blue
     "Переменные": { blocks: ["variable", "variable-selector"], color: "#66bb6a" }, // Green
@@ -83,6 +85,15 @@ const Menu: React.FC<MenuProps> = ({ blocks, onAddBlockToWorkspace }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)} // Обновление строки поиска
             />
+
+            {/* Категория: Dev */}
+            <div className="menu-category" onClick={() => toggleCategory("Dev")}>
+                Dev
+                <span>{collapsedCategories["Dev"] ? "▲" : "▼"}</span>
+            </div>
+            {!collapsedCategories["Dev"] && (
+                <div>{renderBlocksByCategory("Dev")}</div>
+            )}
 
             {/* Категория: Условия */}
             <div className="menu-category" onClick={() => toggleCategory("Условия")}>
