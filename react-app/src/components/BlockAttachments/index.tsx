@@ -8,6 +8,7 @@ export interface BlockAttachmentsTemplate {
     id: number;
     color: string;
     block: Block;
+    nestedBlocks?: Record<string, BlockAttachmentsTemplate[]>;
 }
 
 interface Props {
@@ -15,15 +16,34 @@ interface Props {
     onChange: (children: CodeType[]) => void;
     onBlocksChange?: (blocks: BlockAttachmentsTemplate[]) => void;
     initialBlocks?: BlockAttachmentsTemplate[];
+    onNestedBlocksChange?: (blockId: number, nestedBlocks: Record<string, BlockAttachmentsTemplate[]>) => void;
 }
 
-export default function BlockAttachments({ title, onChange, onBlocksChange, initialBlocks }: Props) {
+export default function BlockAttachments({ title, onChange, onBlocksChange, initialBlocks, onNestedBlocksChange }: Props) {
     const [blockAttachments, setBlockAttachments] = useState<BlockAttachmentsTemplate[]>(initialBlocks || []);
     const [childrenCodes, setChildrenCodes] = useState<Record<number, CodeType>>({});
+    const [nestedBlocksByBlockId, setNestedBlocksByBlockId] = useState<Record<number, Record<string, BlockAttachmentsTemplate[]>>>({});
+    const blockAttachmentsRef = useRef(blockAttachments);
+    const nestedBlocksByBlockIdRef = useRef(nestedBlocksByBlockId);
+    
+    useEffect(() => {
+        blockAttachmentsRef.current = blockAttachments;
+    }, [blockAttachments]);
+    
+    useEffect(() => {
+        nestedBlocksByBlockIdRef.current = nestedBlocksByBlockId;
+    }, [nestedBlocksByBlockId]);
     
     useEffect(() => {
         if (initialBlocks && initialBlocks.length > 0) {
             setBlockAttachments(initialBlocks);
+            const nestedBlocks: Record<number, Record<string, BlockAttachmentsTemplate[]>> = {};
+            initialBlocks.forEach(block => {
+                if (block.nestedBlocks) {
+                    nestedBlocks[block.id] = block.nestedBlocks;
+                }
+            });
+            setNestedBlocksByBlockId(nestedBlocks);
             if (onBlocksChange) {
                 onBlocksChange(initialBlocks);
             }
@@ -38,9 +58,13 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
             const block = JSON.parse(blockData);
             const id = Date.now() + Math.floor(Math.random() * 1000);
             setBlockAttachments((prev) => {
-                const updated = [...prev, { id, color: block.color, block: block.block }];
+                const updated = [...prev, { id, color: block.color, block: block.block, nestedBlocks: {} }];
                 if (onBlocksChange) {
-                    onBlocksChange(updated);
+                    const updatedWithNested = updated.map(b => ({
+                        ...b,
+                        nestedBlocks: nestedBlocksByBlockIdRef.current[b.id] || b.nestedBlocks || {}
+                    }));
+                    onBlocksChange(updatedWithNested);
                 }
                 return updated;
             });
@@ -80,6 +104,29 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
         onChange(orderedChildren);
     }, [orderedChildren, onChange]);
 
+    const handleNestedBlocksChange = (blockId: number, nestedBlocks: Record<string, BlockAttachmentsTemplate[]>) => {
+        setNestedBlocksByBlockId((prev) => {
+            const updated = {
+                ...prev,
+                [blockId]: nestedBlocks
+            };
+            
+            if (onBlocksChange) {
+                const updatedBlocks = blockAttachmentsRef.current.map(block => ({
+                    ...block,
+                    nestedBlocks: updated[block.id] || block.nestedBlocks || {}
+                }));
+                onBlocksChange(updatedBlocks);
+            }
+            
+            return updated;
+        });
+        
+        if (onNestedBlocksChange) {
+            onNestedBlocksChange(blockId, nestedBlocks);
+        }
+    };
+
     return (
         <div className={Style.BlockAttachments}>
             <label>{title}</label>
@@ -87,13 +134,24 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
                 {blockAttachments.map((blockAttachment, index) => (
                     <BlockTemplateAttachments
                         deleteBlock={() => {
+                            setNestedBlocksByBlockId((prev) => {
+                                const updated = { ...prev };
+                                delete updated[blockAttachment.id];
+                                return updated;
+                            });
+                            
                             setBlockAttachments((prevBlocks: BlockAttachmentsTemplate[]) => {
                                 const updated = prevBlocks.filter((block) => block.id !== blockAttachment.id);
                                 if (onBlocksChange) {
-                                    onBlocksChange(updated);
+                                    const updatedWithNested = updated.map(b => ({
+                                        ...b,
+                                        nestedBlocks: nestedBlocksByBlockIdRef.current[b.id] || b.nestedBlocks || {}
+                                    }));
+                                    onBlocksChange(updatedWithNested);
                                 }
                                 return updated;
                             });
+                            
                             handleChildChange(blockAttachment.id, null);
                         }}
                         key={`block_attachments_${blockAttachment.id}`}
@@ -101,6 +159,13 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
                         onChange={(code) => handleChildChange(blockAttachment.id, code)}
                         color={blockAttachment.color}
                         block={blockAttachment.block}
+                        onNestedBlocksChange={(fieldName, nestedBlocks) => {
+                            handleNestedBlocksChange(blockAttachment.id, {
+                                ...(nestedBlocksByBlockId[blockAttachment.id] || {}),
+                                [fieldName]: nestedBlocks
+                            });
+                        }}
+                        initialNestedBlocks={blockAttachment.nestedBlocks || {}}
                     />
                 ))}
                 <div className={Style.Image}>

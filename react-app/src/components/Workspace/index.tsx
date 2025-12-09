@@ -187,6 +187,26 @@ export default function Workspace({ categories, blocks }: Props) {
     generatorCode(code);
   };
 
+  const collectNestedBlocksRecursively = (blocks: any[]): any[] => {
+    return blocks.map(block => {
+      const nestedBlocks: Record<string, any[]> = {};
+      
+      if (block.nestedBlocks) {
+        Object.keys(block.nestedBlocks).forEach(fieldName => {
+          const fieldBlocks = block.nestedBlocks[fieldName];
+          if (Array.isArray(fieldBlocks) && fieldBlocks.length > 0) {
+            nestedBlocks[fieldName] = collectNestedBlocksRecursively(fieldBlocks);
+          }
+        });
+      }
+      
+      return {
+        ...block,
+        nestedBlocks: Object.keys(nestedBlocks).length > 0 ? nestedBlocks : undefined
+      };
+    });
+  };
+
   const handleSave = useCallback(async () => {
     if (workspaceBlocks.length === 0) {
       setSaveStatus("Нет блоков для сохранения");
@@ -198,15 +218,27 @@ export default function Workspace({ categories, blocks }: Props) {
     setSaveStatus(null);
 
     try {
-      const blocksData = workspaceBlocks.map((block) => ({
-        id: block.id,
-        type: block.block.block_name || block.block.menu_name,
-        x: block.x,
-        y: block.y,
-        color: block.color,
-        block: block.block,
-        nestedBlocks: nestedBlocks[block.id] || {},
-      }));
+      const blocksData = workspaceBlocks.map((block) => {
+        const blockNestedBlocks = nestedBlocks[block.id] || {};
+        
+        const processedNestedBlocks: Record<string, any[]> = {};
+        Object.keys(blockNestedBlocks).forEach(fieldName => {
+          const fieldBlocks = blockNestedBlocks[fieldName];
+          if (Array.isArray(fieldBlocks) && fieldBlocks.length > 0) {
+            processedNestedBlocks[fieldName] = collectNestedBlocksRecursively(fieldBlocks);
+          }
+        });
+
+        return {
+          id: block.id,
+          type: block.block.block_name || block.block.menu_name,
+          x: block.x,
+          y: block.y,
+          color: block.color,
+          block: block.block,
+          nestedBlocks: Object.keys(processedNestedBlocks).length > 0 ? processedNestedBlocks : {},
+        };
+      });
 
       const workflowData = {
         id: workflowId || undefined,

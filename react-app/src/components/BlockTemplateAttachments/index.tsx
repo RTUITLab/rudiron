@@ -197,6 +197,22 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                     return { ...prev, [elem.name]: blocks };
                                 });
                             }}
+                            onNestedBlocksChange={(blockId, nestedBlocks) => {
+                                setNestedBlocksByField((prev) => {
+                                    const currentBlocks = prev[elem.name] || [];
+                                    const updatedBlocks = currentBlocks.map(block => 
+                                        block.id === blockId 
+                                            ? { ...block, nestedBlocks }
+                                            : block
+                                    );
+                                    
+                                    if (onNestedBlocksChange) {
+                                        onNestedBlocksChange(elem.name, updatedBlocks);
+                                    }
+                                    
+                                    return { ...prev, [elem.name]: updatedBlocks };
+                                });
+                            }}
                             initialBlocks={nestedBlocksByField[elem.name] || []}
                         />
                     ) : (
