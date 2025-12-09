@@ -2,7 +2,7 @@ import { Block } from "../../types/blocks";
 import { CSSProperties, DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import Style from "./blockTemplateAttachments.module.scss";
 import BlockList from "../BlockList";
-import BlockAttachments from "../BlockAttachments";
+import BlockAttachments, { BlockAttachmentsTemplate } from "../BlockAttachments";
 import BlockInput from "../BlockInput";
 import { useVariables } from "../../context/variables";
 import { CodeType } from "../../context/code";
@@ -13,14 +13,17 @@ interface Props {
     deleteBlock: () => void;
     onChange: (code: CodeType | null) => void;
     codeId?: number;
+    onNestedBlocksChange?: (fieldName: string, nestedBlocks: BlockAttachmentsTemplate[]) => void;
+    initialNestedBlocks?: Record<string, BlockAttachmentsTemplate[]>;
 }
 
-export default function BlockTemplateAttachments({ color, block, deleteBlock, onChange, codeId }: Props) {
+export default function BlockTemplateAttachments({ color, block, deleteBlock, onChange, codeId, onNestedBlocksChange, initialNestedBlocks }: Props) {
     const { variables, addVariable, removeVariable } = useVariables();
     const [fieldValues, setFieldValues] = useState<Record<string, string | number | undefined>>({});
     const [isSaved, setIsSaved] = useState(false);
     const [savedName, setSavedName] = useState<string>("");
     const [childrenByField, setChildrenByField] = useState<Record<string, CodeType[]>>({});
+    const [nestedBlocksByField, setNestedBlocksByField] = useState<Record<string, BlockAttachmentsTemplate[]>>(initialNestedBlocks || {});
     const internalCodeId = useRef<number>(codeId ?? Date.now() + Math.floor(Math.random() * 1000));
 
     const styleColor: CSSProperties = { outlineColor: color };
@@ -181,6 +184,20 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                             onChange={(children) =>
                                 setChildrenByField((prev) => ({ ...prev, [elem.name]: children }))
                             }
+                            onBlocksChange={(blocks) => {
+                                setNestedBlocksByField((prev) => {
+                                    const prevBlocks = prev[elem.name] || [];
+                                    const prevKey = JSON.stringify(prevBlocks);
+                                    const newKey = JSON.stringify(blocks);
+                                    
+                                    if (prevKey !== newKey && onNestedBlocksChange) {
+                                        onNestedBlocksChange(elem.name, blocks);
+                                    }
+                                    
+                                    return { ...prev, [elem.name]: blocks };
+                                });
+                            }}
+                            initialBlocks={nestedBlocksByField[elem.name] || []}
                         />
                     ) : (
                         elem.type === 3 && (

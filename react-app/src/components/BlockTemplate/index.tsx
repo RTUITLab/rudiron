@@ -13,6 +13,8 @@ interface Props {
   z: number;
   deleteBlock: (id: string) => void;
   setNewPosition: (id: string, x: number, y: number) => void;
+  onChildrenChange?: (blockId: string, childrenByField: Record<string, any[]>) => void;
+  initialNestedBlocks?: Record<string, any[]>;
 }
 
 export default function BlockTemplate({
@@ -24,18 +26,20 @@ export default function BlockTemplate({
   z,
   deleteBlock,
   setNewPosition,
+  onChildrenChange,
+  initialNestedBlocks,
 }: Props) {
   const refBlock = useRef<HTMLDivElement | null>(null);
   const refOriginOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const { updateData } = useContext(CodeContext);
   const [childrenByField, setChildrenByField] = useState<Record<string, CodeType[]>>({});
+  const [nestedBlocksByField, setNestedBlocksByField] = useState<Record<string, any[]>>(initialNestedBlocks || {});
   const lastPayloadRef = useRef<string>("");
+  const lastNestedBlocksRef = useRef<string>(JSON.stringify(initialNestedBlocks || {}));
+  const onChildrenChangeRef = useRef(onChildrenChange);
 
-  // hash для id
   const codeId = id.split("-").reduce((acc, part) => acc + part.charCodeAt(0), 0);
-
-  // 🔄 Обновление CodeContext
   useEffect(() => {
     const children = Object.values(childrenByField).flat();
     let code = block.default_code;
@@ -57,14 +61,25 @@ export default function BlockTemplate({
     return () => updateData({ code: block.default_code, children: [], id: codeId }, "delete");
   }, [block.default_code, block.fields, childrenByField, codeId, updateData]);
 
-  // 🎨 Начальная позиция блока
+  useEffect(() => {
+    onChildrenChangeRef.current = onChildrenChange;
+  }, [onChildrenChange]);
+  useEffect(() => {
+    const nestedKey = JSON.stringify(nestedBlocksByField);
+    if (nestedKey === lastNestedBlocksRef.current) return;
+    lastNestedBlocksRef.current = nestedKey;
+    
+    if (onChildrenChangeRef.current) {
+      onChildrenChangeRef.current(id, nestedBlocksByField);
+    }
+  }, [nestedBlocksByField, id]);
+
   useEffect(() => {
     if (refBlock.current) {
       refBlock.current.style.transform = `translate(${x}px, ${y}px)`;
     }
   }, [x, y]);
 
-  // 🔹 Обработчик начала drag
   const handleDragButtonMouseDown = (e: ReactMouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -74,7 +89,6 @@ export default function BlockTemplate({
 
     setIsDragging(true);
 
-    // смещение курсора внутри блока
     const rect = blockEl.getBoundingClientRect();
     refOriginOffset.current = {
       x: e.clientX - rect.left,
@@ -99,10 +113,9 @@ export default function BlockTemplate({
         if (match) {
           transformX = parseFloat(match[1]);
           transformY = parseFloat(match[2]);
-        }
       }
+    }
 
-      // новая позиция блока с учетом смещения курсора и сдвига холста
       const newX = e.clientX - refOriginOffset.current.x - transformX;
       const newY = e.clientY - refOriginOffset.current.y - transformY;
 
@@ -113,7 +126,6 @@ export default function BlockTemplate({
       e.preventDefault();
       setIsDragging(false);
 
-      // финальное положение блока
       const transformStyle = blockEl.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
       const finalX = transformStyle ? parseFloat(transformStyle[1]) : 0;
       const finalY = transformStyle ? parseFloat(transformStyle[2]) : 0;
@@ -176,6 +188,18 @@ export default function BlockTemplate({
                 onChange={(children) =>
                   setChildrenByField((prev) => ({ ...prev, [elem.name]: children }))
                 }
+                onBlocksChange={(blocks) => {
+                  setNestedBlocksByField((prev) => {
+                    const updated = { ...prev, [elem.name]: blocks };
+                    const updatedKey = JSON.stringify(updated);
+                    const prevKey = JSON.stringify(prev);
+                    if (updatedKey === prevKey) {
+                      return prev;
+                    }
+                    return updated;
+                  });
+                }}
+                initialBlocks={initialNestedBlocks?.[elem.name] || []}
               />
             )
         )}

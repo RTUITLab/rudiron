@@ -4,7 +4,7 @@ import Style from "./blockAttachments.module.scss";
 import BlockTemplateAttachments from "../BlockTemplateAttachments";
 import { CodeType } from "../../context/code";
 
-interface BlockAttachmentsTemplate {
+export interface BlockAttachmentsTemplate {
     id: number;
     color: string;
     block: Block;
@@ -13,11 +13,22 @@ interface BlockAttachmentsTemplate {
 interface Props {
     title: string;
     onChange: (children: CodeType[]) => void;
+    onBlocksChange?: (blocks: BlockAttachmentsTemplate[]) => void;
+    initialBlocks?: BlockAttachmentsTemplate[];
 }
 
-export default function BlockAttachments({ title, onChange }: Props) {
-    const [blockAttachments, setBlockAttachments] = useState<BlockAttachmentsTemplate[]>([]);
+export default function BlockAttachments({ title, onChange, onBlocksChange, initialBlocks }: Props) {
+    const [blockAttachments, setBlockAttachments] = useState<BlockAttachmentsTemplate[]>(initialBlocks || []);
     const [childrenCodes, setChildrenCodes] = useState<Record<number, CodeType>>({});
+    
+    useEffect(() => {
+        if (initialBlocks && initialBlocks.length > 0) {
+            setBlockAttachments(initialBlocks);
+            if (onBlocksChange) {
+                onBlocksChange(initialBlocks);
+            }
+        }
+    }, []);
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -26,7 +37,13 @@ export default function BlockAttachments({ title, onChange }: Props) {
         if (blockData) {
             const block = JSON.parse(blockData);
             const id = Date.now() + Math.floor(Math.random() * 1000);
-            setBlockAttachments((prev) => [...prev, { id, color: block.color, block: block.block }]);
+            setBlockAttachments((prev) => {
+                const updated = [...prev, { id, color: block.color, block: block.block }];
+                if (onBlocksChange) {
+                    onBlocksChange(updated);
+                }
+                return updated;
+            });
         }
     };
 
@@ -56,7 +73,6 @@ export default function BlockAttachments({ title, onChange }: Props) {
 
     const lastPayloadRef = useRef<string>("");
 
-    // Сообщаем родителю об изменениях в детях, но только при реальном изменении
     useEffect(() => {
         const payloadKey = orderedChildren.map((c) => `${c.id}:${c.code}`).join("|");
         if (payloadKey === lastPayloadRef.current) return;
@@ -71,9 +87,13 @@ export default function BlockAttachments({ title, onChange }: Props) {
                 {blockAttachments.map((blockAttachment, index) => (
                     <BlockTemplateAttachments
                         deleteBlock={() => {
-                            setBlockAttachments((prevBlocks: BlockAttachmentsTemplate[]) =>
-                                prevBlocks.filter((block) => block.id !== blockAttachment.id)
-                            );
+                            setBlockAttachments((prevBlocks: BlockAttachmentsTemplate[]) => {
+                                const updated = prevBlocks.filter((block) => block.id !== blockAttachment.id);
+                                if (onBlocksChange) {
+                                    onBlocksChange(updated);
+                                }
+                                return updated;
+                            });
                             handleChildChange(blockAttachment.id, null);
                         }}
                         key={`block_attachments_${blockAttachment.id}`}

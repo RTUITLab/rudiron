@@ -30,6 +30,20 @@
   will-change: transform;
 }
 
+.SaveButton {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  cursor: pointer;
+  > svg {
+    width: 32px;
+    height: auto;
+    transition: transform 0.15s;
+    &:hover { transform: scale(1.1); }
+    &:active { transform: scale(0.95); }
+  }
+}
+
 .RunButton {
   position: absolute;
   top: 20px;
@@ -47,4 +61,19 @@
   transition: transform 0.15s;
   &:hover { transform: scale(1.1); }
   &:active { transform: scale(0.95); }
+}
+
+
+.SaveStatus {
+  color: #a8a8a8;
+  position: absolute;
+  bottom: 16px;
+  transform: translateX(-50%);
+  left: 50%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 10000;
 }

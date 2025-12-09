@@ -18,7 +18,7 @@ export default function Search({originBlocks, setSortedBlocks}: Props) {
             const buffer: Blocks = [];
             for(let i = 0; i < originBlocks.length; i++)
             {
-                if(originBlocks[i].menu_name.includes(searchValue))
+                if(originBlocks[i].menu_name.toLowerCase().includes(searchValue.toLowerCase()))
                 {
                     buffer.push(originBlocks[i]);
                 }
@@ -37,7 +37,6 @@ export default function Search({originBlocks, setSortedBlocks}: Props) {
 
     return (
         <div className={Style.Search}>
-            <h3>Блоки</h3>
             <input type="text" value={value} onChange={(e) => {setValue(e.target.value)}} placeholder="Поиск..." />
         </div>
     )
