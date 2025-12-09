@@ -2,3 +2,5 @@ node_modules
 media
 out
 .vscode
+.idea
+.env
