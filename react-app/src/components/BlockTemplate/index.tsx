@@ -89,10 +89,20 @@ export default function BlockTemplate({
 
     setIsDragging(true);
 
-    const rect = blockEl.getBoundingClientRect();
+    const workspaceEl = blockEl.closest(`.${Style.Workspace} .${Style.Content}`) as HTMLDivElement | null;
+    let transformX = 0;
+    let transformY = 0;
+    if (workspaceEl) {
+      const match = workspaceEl.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+      if (match) {
+        transformX = parseFloat(match[1]);
+        transformY = parseFloat(match[2]);
+      }
+    }
+
     refOriginOffset.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: e.clientX - transformX - x,
+      y: e.clientY - transformY - y,
     };
   };
 
@@ -113,11 +123,11 @@ export default function BlockTemplate({
         if (match) {
           transformX = parseFloat(match[1]);
           transformY = parseFloat(match[2]);
+        }
       }
-    }
 
-      const newX = e.clientX - refOriginOffset.current.x - transformX;
-      const newY = e.clientY - refOriginOffset.current.y - transformY;
+      const newX = e.clientX - transformX - refOriginOffset.current.x;
+      const newY = e.clientY - transformY - refOriginOffset.current.y;
 
       blockEl.style.transform = `translate(${newX}px, ${newY}px)`
     };

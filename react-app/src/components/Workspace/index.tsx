@@ -291,6 +291,20 @@ useEffect(() => {
     };
   }, [workspaceBlocks, nestedBlocks, handleSave]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSave]);
+
   const handleNestedBlocksChange = (blockId: string, nestedBlocksByField: Record<string, any[]>) => {
     setNestedBlocks((prev) => ({
       ...prev,
