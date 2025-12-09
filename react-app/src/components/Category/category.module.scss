@@ -1,7 +1,8 @@
 .Category {
   width: 100%;
   padding: 16px;
-  outline: 1px solid #444444;
+  outline: none;
+  border: none;
   > details {
     cursor: pointer;
     > summary {
@@ -34,6 +35,7 @@
     display: grid;
     grid-template-rows: 0fr;
     transition-duration: 300ms;
+    overflow: hidden;
     > div
     {
       width: 100%;

@@ -1,29 +1,36 @@
-import React, {useState, FC, useEffect} from "react";
-import Workspace from "./components/Workspace";
-import { VariableProvider } from "./components/Blocks/Var/VariableContext";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { BlockProvider } from "./components/Blocks/Var/BlockContext";
-import Categories from "./types/categories";
-import Blocks from "./types/blocks";
-import blocksData from "./data/blocks";
-import categoriesData from "./data/categories";
-import ProviderWorkspace from "./provider/workflow";
+import React, { FC } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import AuthCallback from "./pages/AuthCallback";
+import AppPage from "./pages/App";
+import WorkflowPage from "./pages/Workflow";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: FC = () => {
-    const [dataCategories] = useState<Categories>(categoriesData().categories);
-    const [dataBlocks] = useState<Blocks>(blocksData().blocks);
-
     return (
-        <BlockProvider>
-            <VariableProvider>
-                <DndProvider backend={HTML5Backend}>
-                    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-                        <ProviderWorkspace categories={dataCategories} blocks={dataBlocks}/>
-                    </div>
-                </DndProvider>
-            </VariableProvider>
-        </BlockProvider>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route
+                    path="/app"
+                    element={
+                        <ProtectedRoute>
+                            <AppPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/workflow"
+                    element={
+                        <ProtectedRoute>
+                            <WorkflowPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route path="/" element={<Navigate to="/app" replace />} />
+            </Routes>
+        </BrowserRouter>
     );
 };
 

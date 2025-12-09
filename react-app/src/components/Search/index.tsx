@@ -1,7 +1,6 @@
 import Style from "./search.module.scss";
-import {Dispatch, useEffect, useState, SetStateAction} from "react";
+import {Dispatch, useEffect, useState, SetStateAction, useCallback} from "react";
 import Blocks from "../../types/blocks";
-import blocks from "../../types/blocks";
 
 interface Props {
     originBlocks: Blocks;
@@ -13,13 +12,13 @@ const isWhitespaceString = (str: string) => str.replace(/\s/g, '').length
 export default function Search({originBlocks, setSortedBlocks}: Props) {
     const [value, setValue] = useState("");
 
-    useEffect(() => {
-        if (isWhitespaceString(value))
+    const updateSortedBlocks = useCallback((searchValue: string) => {
+        if (isWhitespaceString(searchValue))
         {
             const buffer: Blocks = [];
             for(let i = 0; i < originBlocks.length; i++)
             {
-                if(originBlocks[i].menu_name.includes(value))
+                if(originBlocks[i].menu_name.includes(searchValue))
                 {
                     buffer.push(originBlocks[i]);
                 }
@@ -30,7 +29,11 @@ export default function Search({originBlocks, setSortedBlocks}: Props) {
         {
             setSortedBlocks([...originBlocks]);
         }
-    }, [value]);
+    }, [originBlocks, setSortedBlocks]);
+
+    useEffect(() => {
+        updateSortedBlocks(value);
+    }, [value, updateSortedBlocks]);
 
     return (
         <div className={Style.Search}>

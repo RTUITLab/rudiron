@@ -13,7 +13,7 @@
   > input
   {
     width: 100%;
-    background-color: #383838;
+    background-color: #41434d;
     color: white;
     padding: 10px;
     border: none;
@@ -27,6 +27,13 @@
     {
       border: none;
       outline-color: #4a5878;
+    }
+    &:disabled
+    {
+      background-color: #2f3038;
+      color: #8d8d8d;
+      outline-color: #555;
+      cursor: not-allowed;
     }
   }
 }

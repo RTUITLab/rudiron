@@ -1,5 +1,4 @@
 import Style from "./aside.module.scss";
-import Heading from "../Heading";
 import Search from "../Search";
 import Categories from "../../types/categories";
 import Blocks from "../../types/blocks";
@@ -35,7 +34,6 @@ export default function Aside({categories, blocks, refCanDrop, workSpacePermissi
 
     return (
         <aside className={Style.Aside}>
-            <Heading/>
             <Search originBlocks={blocks} setSortedBlocks={setSortedBlocks}/>
             {categories.map((category, index) => (
                 <CategoryDiv workSpacePermission={workSpacePermission} refCanDrop={refCanDrop} key={index} category={category} blocks={blocksByCategory[category.name] || []}  />

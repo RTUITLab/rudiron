@@ -1,134 +1,185 @@
-import {Block} from "../../types/blocks";
-import {CSSProperties, useEffect, useRef, useState, MouseEvent, useContext} from "react";
+import { Block } from "../../types/blocks";
+import { useEffect, useRef, useState, MouseEvent as ReactMouseEvent, useContext } from "react";
 import Style from "./blockTemplate.module.scss";
-import Coordinates from "../Сoordinates";
-import BlockList from "../BlockList";
 import BlockAttachments from "../BlockAttachments";
-import CodeContext from "../../context/code";
+import CodeContext, { CodeType } from "../../context/code";
 
 interface Props {
-    color: string;
-    block: Block;
-    x: number;
-    y: number;
-    z: number;
-    deleteBlock: (index: number) => void;
-    setNewPosition: (index: number, x: number, y: number) => void;
+  id: string;
+  color: string;
+  block: Block;
+  x: number;
+  y: number;
+  z: number;
+  deleteBlock: (id: string) => void;
+  setNewPosition: (id: string, x: number, y: number) => void;
 }
 
-export default function BlockTemplate({ color, block, x, y, z, deleteBlock, setNewPosition }: Props) {
-    const refOriginPosition = useRef<{x: number, y: number}>({x: x, y: y});
-    const [position, setPosition] = useState<{x: number, y: number} | null>(null);
-    const refBlock = useRef<HTMLDivElement | null>(null);
-    const [offset, setOffset] = useState({ x: 0, y: 0 });
-    const refOriginOffset = useRef<{x: number, y: number}>({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [offsetBlock, setOffsetBlock] = useState<{width: number, height: number} | null>(null);
-    const {value, updateData} = useContext(CodeContext);
-    const id = Date.now();
+export default function BlockTemplate({
+  id,
+  color,
+  block,
+  x,
+  y,
+  z,
+  deleteBlock,
+  setNewPosition,
+}: Props) {
+  const refBlock = useRef<HTMLDivElement | null>(null);
+  const refOriginOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const { updateData } = useContext(CodeContext);
+  const [childrenByField, setChildrenByField] = useState<Record<string, CodeType[]>>({});
+  const lastPayloadRef = useRef<string>("");
 
-    useEffect(() => {
-        updateData({code: block.default_code, children: [], id: id}, "set");
-        return () => {
-            updateData({code: block.default_code, children: [], id: id}, "delete");
-        }
-    }, []);
+  // hash для id
+  const codeId = id.split("-").reduce((acc, part) => acc + part.charCodeAt(0), 0);
 
-    const styleColor: CSSProperties = {
-        outlineColor: color,
+  // 🔄 Обновление CodeContext
+  useEffect(() => {
+    const children = Object.values(childrenByField).flat();
+    let code = block.default_code;
+
+    block.fields.forEach((field) => {
+      if (field.type === 2) {
+        const placeholder = `%${field.name}%`;
+        const childCode = (childrenByField[field.name] || []).map((c) => c.code).join("\n");
+        code = code.replace(new RegExp(placeholder, "g"), childCode);
+      }
+    });
+
+    const childKey = children.map((c) => `${c.id}:${c.code}`).join("|");
+    const payloadKey = `${code}|${childKey}`;
+    if (payloadKey === lastPayloadRef.current) return;
+    lastPayloadRef.current = payloadKey;
+
+    updateData({ code, children, id: codeId }, "set");
+    return () => updateData({ code: block.default_code, children: [], id: codeId }, "delete");
+  }, [block.default_code, block.fields, childrenByField, codeId, updateData]);
+
+  // 🎨 Начальная позиция блока
+  useEffect(() => {
+    if (refBlock.current) {
+      refBlock.current.style.transform = `translate(${x}px, ${y}px)`;
     }
+  }, [x, y]);
 
-    const style: CSSProperties = {
-        outlineColor: color,
-        overflow: position === null ? "0" : "1",
-        left: position === null ? 0+"px" : position.x+"px",
-        right: position === null ? 0+"px" : (-1 * position.x)+"px",
-        top: position === null ? 0+"px" : position.y+"px",
-        zIndex: z+2,
-    }
+  // 🔹 Обработчик начала drag
+  const handleDragButtonMouseDown = (e: ReactMouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-    useEffect(() => {
-        if(refBlock.current !== null)
-        {
-            if (!offsetBlock)
-            {
-                const { offsetWidth, offsetHeight } = refBlock.current;
-                setOffsetBlock({width: offsetWidth, height: offsetHeight});
-                setPosition({x: x - Math.floor(offsetWidth / 2), y: y - Math.floor(offsetHeight / 2)});
-            }
-            else
-            {
-                setPosition({x: x - Math.floor(offsetBlock.width / 2), y: y - Math.floor(offsetBlock.height / 2)});
-            }
-        }
-    }, [refBlock, x, y]);
+    const blockEl = refBlock.current;
+    if (!blockEl) return;
 
-    const handleMouseDown = (e: MouseEvent) => {
-        if (position)
-        {
-            e.preventDefault();
-            setIsDragging(true);
-            refOriginOffset.current = { x: e.clientX - refOriginPosition.current.x, y: e.clientY - refOriginPosition.current.y };
-            setOffset({ x: e.clientX - position.x, y: e.clientY - position.y });
-        }
+    setIsDragging(true);
+
+    // смещение курсора внутри блока
+    const rect = blockEl.getBoundingClientRect();
+    refOriginOffset.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
     };
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const blockEl = refBlock.current;
+    if (!blockEl) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-        if (!isDragging) return;
-        refOriginPosition.current = { x: e.clientX - refOriginOffset.current.x, y: e.clientY - refOriginOffset.current.y }
-        setPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-    };
+      e.preventDefault();
 
-    const handleMouseUp = () => {
-        setIsDragging(false);
-        if (position && refBlock.current)
-        {
-            setNewPosition(z, refOriginPosition.current.x, refOriginPosition.current.y);
+      const workspaceEl = blockEl.closest(`.${Style.Workspace} .${Style.Content}`) as HTMLDivElement | null;
+      let transformX = 0;
+      let transformY = 0;
+      if (workspaceEl) {
+        const match = workspaceEl.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+        if (match) {
+          transformX = parseFloat(match[1]);
+          transformY = parseFloat(match[2]);
         }
+      }
+
+      // новая позиция блока с учетом смещения курсора и сдвига холста
+      const newX = e.clientX - refOriginOffset.current.x - transformX;
+      const newY = e.clientY - refOriginOffset.current.y - transformY;
+
+      blockEl.style.transform = `translate(${newX}px, ${newY}px)`
     };
 
-    return (
-        <div ref={refBlock} className={Style.BlockTemplate} style={style}>
-            <div style={styleColor} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
-                <p>{block.menu_name}</p>
-                <div>
-                    <button onMouseDown={handleMouseDown}>
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M13.2499 10.4995C13.2499 10.9137 13.5857 11.2495 13.9999 11.2495C14.4142 11.2495 14.7499 10.9137 14.7499 10.4995H13.2499ZM16.8961 7.44438C17.1417 7.7779 17.6112 7.84915 17.9448 7.60352C18.2783 7.35789 18.3495 6.88839 18.1039 6.55487L16.8961 7.44438ZM9.89609 6.55491C9.65047 6.88844 9.72173 7.35794 10.0553 7.60356C10.3888 7.84918 10.8583 7.77792 11.1039 7.44439L9.89609 6.55491ZM14.7499 10.4995V3.49951H13.2499V10.4995H14.7499ZM13.9999 4.24951C13.9063 4.24951 13.9026 4.21666 14.0279 4.29222C14.1326 4.35536 14.271 4.45974 14.4393 4.60844C14.7742 4.90432 15.1578 5.31314 15.5295 5.74128C15.898 6.16569 16.2404 6.5923 16.4916 6.91415C16.6168 7.07468 16.7187 7.20824 16.789 7.30126C16.8241 7.34775 16.8513 7.38406 16.8695 7.40849C16.8786 7.42071 16.8854 7.42995 16.8899 7.436C16.8921 7.43903 16.8938 7.44126 16.8948 7.44266C16.8954 7.44337 16.8957 7.44386 16.8959 7.44415C16.896 7.44429 16.8961 7.44439 16.8961 7.44442C16.8961 7.44444 16.8961 7.44443 16.8961 7.44444C16.8961 7.44442 16.8961 7.44438 17.5 6.99963C18.1039 6.55487 18.1038 6.55481 18.1038 6.55473C18.1038 6.55468 18.1037 6.55459 18.1036 6.55451C18.1035 6.55433 18.1033 6.55411 18.1031 6.55383C18.1027 6.55327 18.1021 6.55249 18.1014 6.55151C18.1 6.54956 18.0979 6.54677 18.0952 6.54317C18.0899 6.53598 18.0822 6.52556 18.0722 6.51214C18.0522 6.4853 18.0231 6.44642 17.9859 6.3972C17.9116 6.29881 17.8049 6.15892 17.6741 5.99131C17.4131 5.6569 17.0534 5.20848 16.6622 4.75787C16.2742 4.31098 15.8404 3.84476 15.4325 3.48438C15.2295 3.30494 15.0151 3.13587 14.8024 3.0076C14.6102 2.89174 14.3241 2.74951 13.9999 2.74951L13.9999 4.24951ZM10.5 6.99965C11.1039 7.44439 11.1039 7.44443 11.1039 7.44445C11.1039 7.44444 11.1039 7.44445 11.1039 7.44443C11.1039 7.44439 11.104 7.4443 11.1041 7.44416C11.1043 7.44387 11.1047 7.44337 11.1052 7.44267C11.1062 7.44127 11.1079 7.43904 11.1101 7.43601C11.1146 7.42996 11.1214 7.42071 11.1306 7.4085C11.1488 7.38407 11.1759 7.34776 11.211 7.30127C11.2813 7.20825 11.3832 7.07469 11.5084 6.91416C11.7596 6.5923 12.102 6.16569 12.4704 5.74127C12.8421 5.31313 13.2257 4.90431 13.5606 4.60843C13.7289 4.45973 13.8672 4.35535 13.972 4.29221C14.0973 4.21666 14.0935 4.24951 13.9999 4.24951L13.9999 2.74951C13.6758 2.74951 13.3897 2.89174 13.1975 3.0076C12.9847 3.13588 12.7704 3.30494 12.5673 3.48438C12.1595 3.84478 11.7257 4.311 11.3378 4.75789C10.9465 5.20851 10.5869 5.65693 10.3259 5.99135C10.1951 6.15896 10.0884 6.29885 10.0141 6.39725C9.9769 6.44646 9.9478 6.48535 9.92779 6.51219C9.91779 6.52561 9.91006 6.53602 9.90474 6.54321C9.90207 6.54681 9.90001 6.5496 9.89856 6.55156C9.89784 6.55254 9.89727 6.55331 9.89686 6.55387C9.89665 6.55415 9.89648 6.55438 9.89636 6.55455C9.89629 6.55464 9.89623 6.55473 9.89619 6.55477C9.89614 6.55485 9.89609 6.55491 10.5 6.99965Z"
-                                fill="white"/>
-                            <path
-                                d="M10.5 14.7497C10.9142 14.7497 11.25 14.4139 11.25 13.9997C11.25 13.5855 10.9142 13.2497 10.5 13.2497V14.7497ZM6.55518 18.1039C6.88869 18.3495 7.35819 18.2783 7.60384 17.9448C7.8495 17.6113 7.77827 17.1418 7.44476 16.8961L6.55518 18.1039ZM7.44473 11.1039C7.77826 10.8583 7.84953 10.3888 7.60392 10.0553C7.3583 9.72174 6.88881 9.65047 6.55527 9.89608L7.44473 11.1039ZM10.5 13.2497H3.5V14.7497H10.5V13.2497ZM2.75 13.9997C2.75 14.3239 2.89222 14.61 3.00807 14.8021C3.13633 15.0149 3.30539 15.2292 3.48482 15.4323C3.84519 15.8402 4.31139 16.274 4.75826 16.662C5.20885 17.0533 5.65725 17.413 5.99165 17.674C6.15925 17.8048 6.29913 17.9116 6.39752 17.9859C6.44674 18.0231 6.48562 18.0522 6.51246 18.0722C6.52588 18.0822 6.53629 18.0899 6.54348 18.0952C6.54708 18.0979 6.54987 18.1 6.55183 18.1014C6.55281 18.1021 6.55358 18.1027 6.55414 18.1031C6.55442 18.1033 6.55465 18.1035 6.55482 18.1036C6.55491 18.1037 6.555 18.1037 6.55504 18.1038C6.55512 18.1038 6.55518 18.1039 6.99997 17.5C7.44476 16.8961 7.4448 16.8962 7.44482 16.8962C7.44482 16.8962 7.44483 16.8962 7.44481 16.8962C7.44477 16.8961 7.44468 16.8961 7.44453 16.896C7.44424 16.8957 7.44375 16.8954 7.44304 16.8949C7.44164 16.8938 7.43941 16.8922 7.43638 16.8899C7.43033 16.8854 7.42109 16.8786 7.40887 16.8695C7.38444 16.8513 7.34813 16.8241 7.30164 16.789C7.20863 16.7187 7.07508 16.6168 6.91456 16.4915C6.59271 16.2404 6.16612 15.8979 5.74172 15.5294C5.3136 15.1577 4.9048 14.7741 4.60893 14.4392C4.46023 14.2709 4.35585 14.1325 4.29271 14.0277C4.21716 13.9024 4.25 13.9062 4.25 13.9997L2.75 13.9997ZM7 10.5C6.55527 9.89608 6.55521 9.89613 6.55513 9.89619C6.55509 9.89622 6.555 9.89628 6.55491 9.89635C6.55474 9.89648 6.55451 9.89664 6.55423 9.89685C6.55367 9.89726 6.5529 9.89783 6.55192 9.89856C6.54996 9.9 6.54717 9.90207 6.54357 9.90473C6.53638 9.91005 6.52597 9.91778 6.51255 9.92778C6.48571 9.94778 6.44682 9.97689 6.39761 10.0141C6.29922 10.0884 6.15933 10.1951 5.99173 10.3258C5.65732 10.5868 5.20892 10.9465 4.75832 11.3376C4.31144 11.7256 3.84523 12.1593 3.48485 12.5672C3.30542 12.7702 3.13635 12.9846 3.00808 13.1973C2.89222 13.3895 2.75 13.6756 2.75 13.9997L4.25 13.9997C4.25 14.0933 4.21715 14.0971 4.29269 13.9718C4.35583 13.867 4.4602 13.7287 4.60889 13.5604C4.90476 13.2256 5.31355 12.842 5.74168 12.4703C6.16608 12.1019 6.59267 11.7596 6.91452 11.5084C7.07504 11.3832 7.20859 11.2813 7.30161 11.211C7.3481 11.1759 7.38441 11.1488 7.40884 11.1306C7.42105 11.1215 7.43029 11.1146 7.43635 11.1101C7.43937 11.1079 7.4416 11.1062 7.44301 11.1052C7.44371 11.1047 7.44421 11.1043 7.4445 11.1041C7.44464 11.104 7.44473 11.1039 7.44477 11.1039C7.44479 11.1039 7.44478 11.1039 7.44479 11.1039C7.44476 11.1039 7.44473 11.1039 7 10.5Z"
-                                fill="white"/>
-                            <path
-                                d="M17.5 13.2496C17.0858 13.2496 16.75 13.5854 16.75 13.9996C16.75 14.4138 17.0858 14.7496 17.5 14.7496V13.2496ZM21.4449 9.89586C21.1114 9.65023 20.6419 9.72148 20.3962 10.055C20.1506 10.3885 20.2218 10.858 20.5554 11.1037L21.4449 9.89586ZM20.5553 16.8959C20.2218 17.1415 20.1506 17.611 20.3962 17.9445C20.6419 18.278 21.1114 18.3493 21.4449 18.1036L20.5553 16.8959ZM24.5 13.2496H17.5V14.7496H24.5V13.2496ZM25.25 13.9996C25.25 13.6755 25.1078 13.3894 24.9919 13.1972C24.8637 12.9844 24.6946 12.7701 24.5152 12.5671C24.1548 12.1592 23.6886 11.7255 23.2418 11.3375C22.7912 10.9463 22.3428 10.5866 22.0084 10.3256C21.8408 10.1949 21.7009 10.0881 21.6025 10.0138C21.5533 9.97667 21.5144 9.94756 21.4876 9.92756C21.4742 9.91756 21.4638 9.90983 21.4566 9.9045C21.453 9.90184 21.4502 9.89978 21.4482 9.89833C21.4473 9.89761 21.4465 9.89704 21.4459 9.89663C21.4456 9.89642 21.4454 9.89625 21.4452 9.89612C21.4452 9.89606 21.4451 9.89599 21.445 9.89596C21.4449 9.8959 21.4449 9.89586 21.0001 10.4998C20.5554 11.1037 20.5553 11.1036 20.5553 11.1036C20.5553 11.1036 20.5553 11.1036 20.5553 11.1036C20.5554 11.1037 20.5555 11.1037 20.5556 11.1038C20.5559 11.104 20.5564 11.1044 20.5571 11.1049C20.5585 11.106 20.5607 11.1076 20.5638 11.1099C20.5698 11.1143 20.579 11.1212 20.5913 11.1303C20.6157 11.1485 20.652 11.1757 20.6985 11.2108C20.7915 11.281 20.925 11.3829 21.0856 11.5082C21.4074 11.7593 21.834 12.1017 22.2584 12.4701C22.6865 12.8418 23.0952 13.2254 23.3911 13.5603C23.5398 13.7285 23.6442 13.8669 23.7073 13.9716C23.7828 14.097 23.75 14.0932 23.75 13.9996L25.25 13.9996ZM21.0001 17.4998C21.4449 18.1036 21.4449 18.1036 21.445 18.1035C21.4451 18.1035 21.4452 18.1034 21.4452 18.1034C21.4454 18.1032 21.4456 18.1031 21.4459 18.1029C21.4465 18.1025 21.4473 18.1019 21.4482 18.1012C21.4502 18.0997 21.453 18.0976 21.4566 18.095C21.4638 18.0897 21.4742 18.0819 21.4876 18.0719C21.5144 18.0519 21.5533 18.0228 21.6025 17.9856C21.7009 17.9113 21.8408 17.8046 22.0084 17.6738C22.3428 17.4128 22.7912 17.0531 23.2418 16.6619C23.6886 16.2739 24.1548 15.8401 24.5152 15.4322C24.6946 15.2291 24.8637 15.0148 24.9919 14.802C25.1078 14.6098 25.25 14.3238 25.25 13.9996L23.75 13.9996C23.75 13.906 23.7828 13.9023 23.7073 14.0276C23.6442 14.1324 23.5398 14.2707 23.3911 14.439C23.0952 14.7739 22.6864 15.1575 22.2583 15.5292C21.8339 15.8977 21.4074 16.2401 21.0855 16.4913C20.925 16.6166 20.7914 16.7185 20.6984 16.7887C20.6519 16.8238 20.6156 16.851 20.5912 16.8692C20.579 16.8783 20.5698 16.8852 20.5637 16.8897C20.5607 16.8919 20.5584 16.8936 20.557 16.8946C20.5563 16.8951 20.5558 16.8955 20.5555 16.8957C20.5554 16.8958 20.5553 16.8959 20.5553 16.8959C20.5553 16.8959 20.5553 16.8959 20.5553 16.8959C20.5553 16.8959 20.5553 16.8959 21.0001 17.4998Z"
-                                fill="white"/>
-                            <path
-                                d="M14.7499 17.4995C14.7499 17.0853 14.4142 16.7495 13.9999 16.7495C13.5857 16.7495 13.2499 17.0853 13.2499 17.4995H14.7499ZM11.1039 20.5549C10.8583 20.2214 10.3888 20.1502 10.0552 20.3958C9.72172 20.6414 9.65047 21.1109 9.89611 21.4444L11.1039 20.5549ZM18.1039 21.4444C18.3495 21.1109 18.2783 20.6414 17.9448 20.3958C17.6113 20.1501 17.1418 20.2214 16.8961 20.5549L18.1039 21.4444ZM14.7499 24.4995V17.4995H13.2499V24.4995H14.7499ZM13.9999 23.7495C14.0935 23.7495 14.0973 23.7824 13.9719 23.7068C13.8672 23.6437 13.7288 23.5393 13.5606 23.3906C13.2257 23.0948 12.8421 22.686 12.4704 22.2579C12.1019 21.8335 11.7596 21.4069 11.5084 21.0851C11.3831 20.9246 11.2813 20.791 11.211 20.698C11.1759 20.6515 11.1487 20.6152 11.1305 20.5908C11.1214 20.5786 11.1146 20.5693 11.1101 20.5633C11.1078 20.5603 11.1062 20.558 11.1052 20.5566C11.1046 20.5559 11.1043 20.5554 11.1041 20.5551C11.104 20.555 11.1039 20.5549 11.1039 20.5549C11.1038 20.5549 11.1039 20.5549 11.1038 20.5549C11.1039 20.5549 11.1039 20.5549 10.5 20.9997C9.89611 21.4444 9.89616 21.4445 9.89621 21.4446C9.89625 21.4446 9.89631 21.4447 9.89638 21.4448C9.8965 21.445 9.89667 21.4452 9.89688 21.4455C9.89729 21.446 9.89786 21.4468 9.89858 21.4478C9.90003 21.4498 9.90209 21.4525 9.90476 21.4561C9.91008 21.4633 9.91781 21.4737 9.92781 21.4872C9.94782 21.514 9.97692 21.5529 10.0141 21.6021C10.0884 21.7005 10.1951 21.8404 10.3259 22.008C10.5869 22.3423 10.9466 22.7907 11.3378 23.2413C11.7258 23.6882 12.1595 24.1543 12.5674 24.5147C12.7704 24.6941 12.9848 24.8632 13.1975 24.9914C13.3897 25.1073 13.6758 25.2495 13.9999 25.2495L13.9999 23.7495ZM17.5 20.9997C16.8961 20.5549 16.8961 20.5548 16.8962 20.5548C16.8962 20.5548 16.8962 20.5548 16.8961 20.5548C16.8961 20.5549 16.8961 20.555 16.8959 20.5551C16.8957 20.5554 16.8954 20.5559 16.8948 20.5566C16.8938 20.558 16.8922 20.5602 16.8899 20.5633C16.8854 20.5693 16.8786 20.5785 16.8695 20.5908C16.8513 20.6152 16.8241 20.6515 16.789 20.698C16.7187 20.791 16.6168 20.9245 16.4916 21.0851C16.2404 21.4069 15.898 21.8335 15.5295 22.2579C15.1578 22.686 14.7742 23.0948 14.4393 23.3906C14.271 23.5393 14.1327 23.6437 14.0279 23.7068C13.9026 23.7824 13.9064 23.7495 13.9999 23.7495L13.9999 25.2495C14.3241 25.2495 14.6101 25.1073 14.8023 24.9915C15.0151 24.8632 15.2294 24.6941 15.4325 24.5147C15.8404 24.1543 16.2741 23.6882 16.6621 23.2413C17.0534 22.7907 17.4131 22.3423 17.6741 22.0079C17.8049 21.8404 17.9116 21.7005 17.9859 21.6021C18.0231 21.5529 18.0522 21.514 18.0722 21.4872C18.0822 21.4737 18.0899 21.4633 18.0952 21.4561C18.0979 21.4525 18.1 21.4497 18.1014 21.4478C18.1021 21.4468 18.1027 21.446 18.1031 21.4455C18.1033 21.4452 18.1035 21.445 18.1036 21.4448C18.1037 21.4447 18.1037 21.4446 18.1038 21.4446C18.1038 21.4445 18.1039 21.4444 17.5 20.9997Z"
-                                fill="white"/>
-                        </svg>
-                    </button>
-                    <button onClick={() => deleteBlock(z)}>
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M22.75 6.4165L22.027 18.1124C21.8423 21.1007 21.7499 22.5948 21.0009 23.669C20.6306 24.2001 20.1538 24.6483 19.6008 24.9852C18.4825 25.6665 16.9855 25.6665 13.9915 25.6665C10.9936 25.6665 9.49469 25.6665 8.37556 24.9839C7.82227 24.6465 7.34533 24.1974 6.97513 23.6655C6.22635 22.5895 6.13603 21.0933 5.95538 18.1008L5.25 6.4165"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                            <path
-                                d="M3.5 6.41659H24.5M18.7317 6.41659L17.9352 4.7736C17.4062 3.68222 17.1416 3.13653 16.6853 2.79619C16.5841 2.7207 16.4769 2.65355 16.3649 2.5954C15.8596 2.33325 15.2531 2.33325 14.0403 2.33325C12.797 2.33325 12.1753 2.33325 11.6616 2.60639C11.5478 2.66693 11.4391 2.7368 11.3368 2.81528C10.8752 3.1694 10.6174 3.73506 10.1017 4.86639L9.39508 6.41659"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M11.082 19.25L11.082 12.25" stroke="white" stroke-width="1.5"
-                                  stroke-linecap="round"/>
-                            <path d="M16.918 19.25L16.918 12.25" stroke="white" stroke-width="1.5"
-                                  stroke-linecap="round"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div style={styleColor}>
-                {block.fields.map((elem, index) =>
-                    elem.type === 2 && (<BlockAttachments title={elem.placeholder} key={"block_attachments_"+index} />)
-                )}
-            </div>
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+
+      // финальное положение блока
+      const transformStyle = blockEl.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+      const finalX = transformStyle ? parseFloat(transformStyle[1]) : 0;
+      const finalY = transformStyle ? parseFloat(transformStyle[2]) : 0;
+
+      setNewPosition(id, finalX, finalY);
+
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "grabbing";
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+  }, [isDragging, id, setNewPosition]);
+
+  return (
+    <div
+      ref={refBlock}
+      className={Style.BlockTemplate}
+      style={{
+        outlineColor: color,
+        zIndex: z + 2,
+        cursor: isDragging ? "grabbing" : "default",
+        position: "absolute",
+        userSelect: "none",
+      }}
+    >
+      <div style={{ outlineColor: color }}>
+        <p>{block.menu_name}</p>
+        <div>
+          <button
+            onMouseDown={handleDragButtonMouseDown}
+            className={Style.DragButton}
+            title="Переместить блок"
+          >
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="7" cy="7" r="1.5" fill="white" /> <circle cx="14" cy="7" r="1.5" fill="white" /> <circle cx="21" cy="7" r="1.5" fill="white" /> <circle cx="7" cy="14" r="1.5" fill="white" /> <circle cx="14" cy="14" r="1.5" fill="white" /> <circle cx="21" cy="14" r="1.5" fill="white" /> <circle cx="7" cy="21" r="1.5" fill="white" /> <circle cx="14" cy="21" r="1.5" fill="white" /> <circle cx="21" cy="21" r="1.5" fill="white" /> </svg>
+          </button>
+
+          <button onClick={() => deleteBlock(id)} title="Удалить блок">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22.75 6.4165L22.027 18.1124C21.8423 21.1007 21.7499 22.5948 21.0009 23.669C20.6306 24.2001 20.1538 24.6483 19.6008 24.9852C18.4825 25.6665 16.9855 25.6665 13.9915 25.6665C10.9936 25.6665 9.49469 25.6665 8.37556 24.9839C7.82227 24.6465 7.34533 24.1974 6.97513 23.6655C6.22635 22.5895 6.13603 21.0933 5.95538 18.1008L5.25 6.4165" stroke="white" strokeWidth="1.5" strokeLinecap="round" /> <path d="M3.5 6.41659H24.5M18.7317 6.41659L17.9352 4.7736C17.4062 3.68222 17.1416 3.13653 16.6853 2.79619C16.5841 2.7207 16.4769 2.65355 16.3649 2.5954C15.8596 2.33325 15.2531 2.33325 14.0403 2.33325C12.797 2.33325 12.1753 2.33325 11.6616 2.60639C11.5478 2.66693 11.4391 2.7368 11.3368 2.81528C10.8752 3.1694 10.6174 3.73506 10.1017 4.86639L9.39508 6.41659" stroke="white" strokeWidth="1.5" strokeLinecap="round" /> <path d="M11.082 19.25L11.082 12.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" /> <path d="M16.918 19.25L16.918 12.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" /> </svg>
+          </button>
         </div>
-    )
+      </div>
+
+      <div style={{ outlineColor: color }}>
+        {block.fields.map(
+          (elem, index) =>
+            elem.type === 2 && (
+              <BlockAttachments
+                title={elem.placeholder}
+                key={`block_attach_${index}`}
+                onChange={(children) =>
+                  setChildrenByField((prev) => ({ ...prev, [elem.name]: children }))
+                }
+              />
+            )
+        )}
+      </div>
+    </div>
+  );
 }

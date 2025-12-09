@@ -1,193 +1,241 @@
+import { useRef, useState, useEffect, useMemo, useContext } from "react";
+import Style from "./workspace.module.scss";
 import Aside from "../Aside";
-import Style from "./workspace.module.scss"
-import {useRef, useState, DragEvent, MouseEvent, useMemo, memo} from "react";
 import TopRightListElements from "../TopRightListElements";
 import Coordinates from "../Сoordinates";
-import Categories from "../../types/categories";
-import Blocks, {Block} from "../../types/blocks";
 import BlockTemplate from "../BlockTemplate";
-
-const CachedBlockTemplate = memo(BlockTemplate)
+import CodeContext, { CodeType } from "../../context/code";
+import generatorCode from "../../utils/generatorCode";
+import { Block } from "../../types/blocks";
 
 interface Props {
-    categories: Categories,
-    blocks: Blocks,
+  categories: any;
+  blocks: any;
 }
 
-interface Position {
-    x: number;
-    y: number;
+interface Vec2 {
+  x: number;
+  y: number;
 }
 
-interface BlockTemplateType {
-    color: string;
-    block: Block;
-    x: number;
-    y: number;
+interface BlockInstance {
+  id: string;
+  color: string;
+  block: Block;
+  x: number;
+  y: number;
 }
 
 export default function Workspace({ categories, blocks }: Props) {
-    const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
-    const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState<boolean>(false);
-    const lastMousePosition = useRef<Position>({ x: 0, y: 0 });
-    const refCanDrop = useRef<boolean>(false);
-    const [canDrop, setCanDrop] = useState(false);
-    const [blocksWorkspace, setBlocksWorkspace] = useState<BlockTemplateType[]>([]);
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [mouse, setMouse] = useState<Vec2>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [workspaceBlocks, setWorkspaceBlocks] = useState<BlockInstance[]>([]);
 
-    function deleteBlock(index: number) {
-        setBlocksWorkspace((prevBlocks: BlockTemplateType[]) => prevBlocks.filter((block, id) => id !== index));
+  const refContainer = useRef<HTMLDivElement | null>(null);
+  const refLast = useRef<Vec2>({ x: 0, y: 0 });
+  const refCanDrop = useRef(false);
+  const { value: codeState } = useContext(CodeContext);
+
+  // ───────────────────────────────
+  // Сетка
+  useEffect(() => {
+    const canvas = document.getElementById("grid-canvas") as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+
+    function drawGrid() {
+      const { width, height } = canvas;
+      const { x, y, scale } = transform;
+      ctx.clearRect(0, 0, width, height);
+
+      const spacing = 40 * scale;
+      const offsetX = x % spacing;
+      const offsetY = y % spacing;
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      for (let i = -spacing; i < width; i += spacing) {
+        for (let j = -spacing; j < height; j += spacing) {
+          ctx.fillRect(i + offsetX, j + offsetY, 2.5, 2.5);
+        }
+      }
     }
 
-    function setNewPosition(index: number, x: number, y: number) {
-        setBlocksWorkspace((prevBlocks: BlockTemplateType[]) => {
-            for(let i = 0; i < prevBlocks.length; i++)
-            {
-                if (i === index)
-                {
-                    prevBlocks[i].x = x;
-                    prevBlocks[i].y = y;
-                }
-            }
-            console.log(prevBlocks);
-            return prevBlocks;
-        })
+    function resize() {
+      canvas.width = window.innerWidth * devicePixelRatio;
+      canvas.height = window.innerHeight * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      drawGrid();
     }
 
-    const renderedBlocks = useMemo(() => {
-        return blocksWorkspace.map((elem, index) => (
-            <CachedBlockTemplate
-                deleteBlock={deleteBlock}
-                setNewPosition={setNewPosition}
-                key={"block_template_workspace_" + index}
-                z={index}
-                color={elem.color}
-                block={elem.block}
-                x={elem.x + position.x}
-                y={elem.y + position.y}
-            />
-        ));
-    }, [blocksWorkspace, position]);
+    window.addEventListener("resize", resize);
+    resize();
 
-    const handleMouseMovePosition = (event: MouseEvent<HTMLDivElement>) => {
-        const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = event.currentTarget;
+    drawGrid();
+    const id = setInterval(drawGrid, 60);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("resize", resize);
+    };
+  }, [transform]);
 
-        setMousePosition({
-            x: event.clientX - offsetLeft - Math.floor(offsetWidth / 2) - 280,
-            y: -1 * (event.clientY - offsetTop - Math.floor(offsetHeight / 2)),
-        });
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    setIsPanning(true);
+    refLast.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (isPanning) {
+      const dx = e.clientX - refLast.current.x;
+      const dy = e.clientY - refLast.current.y;
+      refLast.current = { x: e.clientX, y: e.clientY };
+      setTransform((t) => ({ ...t, x: t.x + dx, y: t.y + dy }));
+    }
+
+    const rect = refContainer.current?.getBoundingClientRect();
+    if (rect) {
+      const worldX = (e.clientX - rect.left - transform.x) / transform.scale;
+      const worldY = (e.clientY - rect.top - transform.y) / transform.scale;
+      setMouse({ x: worldX, y: worldY });
+    }
+  };
+
+  const onMouseUp = () => setIsPanning(false);
+
+  // Приближение
+  /*
+  useEffect(() => {
+    const el = refContainer.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const { clientX, clientY, deltaY } = e;
+      const rect = el.getBoundingClientRect();
+      const mouseX = clientX - rect.left;
+      const mouseY = clientY - rect.top;
+      const worldX = (mouseX - transform.x) / transform.scale;
+      const worldY = (mouseY - transform.y) / transform.scale;
+
+      const zoomFactor = deltaY < 0 ? 1.1 : 0.9;
+      const newScale = Math.min(Math.max(transform.scale * zoomFactor, 0.5), 2);
+
+      setTransform({
+        x: mouseX - worldX * newScale,
+        y: mouseY - worldY * newScale,
+        scale: newScale,
+      });
     };
 
-    const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
-        if (e.button === 0) {
-            e.preventDefault();
-            setIsDragging(true);
-            lastMousePosition.current = { x: e.clientX, y: e.clientY };
-        }
-    };
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [transform]);
+  */
 
-    const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-        if (isDragging) {
-            const deltaX = e.clientX - lastMousePosition.current.x;
-            const deltaY = e.clientY - lastMousePosition.current.y;
+  // Drop логика
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const data = e.dataTransfer.getData("application/json");
+    if (!data) return;
+    const dropped = JSON.parse(data);
+  
+    if (!dropped.block.workspace) return;
+  
+    const rect = refContainer.current!.getBoundingClientRect();
+    const dropX = (e.clientX - rect.left - transform.x) / transform.scale;
+    const dropY = (e.clientY - rect.top - transform.y) / transform.scale;
+  
+    setWorkspaceBlocks((prev) => [
+      ...prev,
+      {
+        id: `block-${Date.now()}-${Math.random()}`,
+        color: dropped.color,
+        block: dropped.block,
+        x: dropX,
+        y: dropY,
+      },
+    ]);
+  };
+  
 
-            setPosition((prev) => ({
-                x: prev.x + deltaX,
-                y: prev.y + deltaY,
-            }));
+  const onDragOver = (e: React.DragEvent) => e.preventDefault();
 
-            lastMousePosition.current = { x: e.clientX, y: e.clientY };
-        }
-    };
+  const deleteBlock = (id: string) =>
+    setWorkspaceBlocks((prev) => prev.filter((b) => b.id !== id));
 
-    const handleMouseUp = () => {
-        setIsDragging(false);
-    };
+  const handleRun = () => {
+    const childIds = new Set<number>();
+    codeState.forEach((item: CodeType) =>
+      item.children.forEach((child: CodeType) => childIds.add(child.id))
+    );
+    const roots = codeState.filter((i: CodeType) => !childIds.has(i.id));
+    const code = roots.map((i: CodeType) => i.code).join("\n\n");
+    if (!code.trim()) return console.warn("Нет кода");
+    generatorCode(code);
+  };
 
-    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        const blockData = e.dataTransfer.getData("application/json");
-        if (blockData) {
-            const block = JSON.parse(blockData);
-            if (block.block.workspace)
-            {
-                const { offsetWidth, offsetHeight } = e.currentTarget;
-                setBlocksWorkspace([...blocksWorkspace, {color: block.color, block: block.block, x: (mousePosition.x + -1 * position.x) + Math.floor(offsetWidth / 2), y: -1 * (mousePosition.y + position.y) + Math.floor(offsetHeight / 2)}]);
-            }
-        }
-    };
+  const renderedBlocks = useMemo(
+    () =>
+      workspaceBlocks.map((b) => (
+        <BlockTemplate
+          key={b.id}
+          id={b.id}
+          color={b.color}
+          block={b.block}
+          x={b.x}
+          y={b.y}
+          z={workspaceBlocks.indexOf(b)}
+          deleteBlock={deleteBlock}
+          setNewPosition={(id, x, y) =>
+            setWorkspaceBlocks((prev) =>
+              prev.map((blk) => (blk.id === id ? { ...blk, x, y } : blk))
+            )
+          }
+        />
+      )),
+    [workspaceBlocks]
+  );
 
-    const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = e.currentTarget;
+  return (
+    <main className={Style.Workspace}>
+      <Aside
+        blocks={blocks}
+        categories={categories}
+        refCanDrop={refCanDrop}
+        workSpacePermission={!!workspaceBlocks.length}
+      />
 
-        setMousePosition({
-            x: e.clientX - offsetLeft - Math.floor(offsetWidth / 2) - 280,
-            y: -1 * (e.clientY - offsetTop - Math.floor(offsetHeight / 2)),
-        });
-    };
+      <div
+        ref={refContainer}
+        className={Style.WorkBuffer}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+      >
+        <canvas id="grid-canvas" className={Style.GridCanvas} />
 
-    const handleCombinedMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-        handleMouseMove(e);
-        handleMouseMovePosition(e);
-    };
+        <div
+          className={Style.Content}
+          style={{
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+            transformOrigin: "0 0",
+          }}
+        >
+          {renderedBlocks}
+        </div>
 
-    const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
-        if (refCanDrop.current) {
-            setCanDrop(true);
-        } else {
-            setCanDrop(false);
-        }
-    };
+        <TopRightListElements>
+          <Coordinates x={mouse.x} y={mouse.y} />
+          {/* <span>Масштаб: {Math.round(transform.scale * 100)}%</span> */}
+        </TopRightListElements>
 
-    const handleDragLeave = () => {
-        refCanDrop.current = false;
-        setCanDrop(false);
-    };
-
-    return (
-        <main className={Style.Workspace}>
-            <Aside blocks={blocks} categories={categories} refCanDrop={refCanDrop}
-                   workSpacePermission={!!blocksWorkspace.length}/>
-            <div className={Style.WorkBuffer}>
-                {renderedBlocks}
-                <div
-                    className={Style.Map}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleCombinedMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    onDrop={canDrop ? () => {
-                    } : handleDrop}
-                    onDragOver={canDrop ? () => {
-                    } : handleDragOver}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    style={{
-                        backgroundPosition: `${position.x}px ${position.y}px`,
-                        cursor: isDragging ? "all-scroll" : "grab",
-                    }}>
-                </div>
-                <TopRightListElements>
-                    <Coordinates title={"Центр в области"} x={-1 * position.x} y={position.y}/>
-                    <Coordinates title={"Указатель мыши"} x={mousePosition.x + -1 * position.x}
-                                 y={mousePosition.y + position.y}/>
-                </TopRightListElements>
-            </div>
-        </main>
-    )
+        <button onClick={handleRun} className={Style.RunButton}>
+          ▶
+        </button>
+      </div>
+    </main>
+  );
 }
-
-/*
-<svg style={{zIndex: 10000}} width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_1184_755)">
-                            <rect width="100" height="1" transform="translate(-25 24.5)" fill="white"/>
-                        </g>
-                        <rect width="1" height="50" transform="translate(24.5)" fill="white"/>
-                        <defs>
-                            <clipPath id="clip0_1184_755">
-                                <rect width="50" height="50" fill="white"/>
-                            </clipPath>
-                        </defs>
-                    </svg>
- */

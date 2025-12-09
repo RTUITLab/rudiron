@@ -19,8 +19,16 @@ export default function BlockAside({color, block, refCanDrop, workSpacePermissio
     };
 
     return (
-        <div draggable={workSpacePermission ? true : block.workspace} style={{opacity: workSpacePermission ? "1" : block.workspace ? "1" : "0.5", cursor: workSpacePermission ? "grab" : block.workspace ? "grab" : "not-allowed"}} onDragStart={handleDragStart} className={Style.BlockAside}>
-            <div style={{backgroundColor: color}}/>
+        <div 
+            draggable={workSpacePermission ? true : block.workspace} 
+            style={{
+                opacity: workSpacePermission ? "1" : block.workspace ? "1" : "0.5", 
+                cursor: workSpacePermission ? "grab" : block.workspace ? "grab" : "not-allowed"
+            }} 
+            onDragStart={handleDragStart} 
+            className={Style.BlockAside}
+        >
+            <div style={{backgroundColor: color, overflow: "hidden"}} />
             <div>
                 <p>{block.menu_name}</p>
             </div>
