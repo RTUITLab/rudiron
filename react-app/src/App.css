@@ -38,3 +38,8 @@
   transform: translateY(1px); /* Pressed effect */
   background-color: rgba(56, 142, 60, 0.3); /* Slightly darker */
 }
+
+
+body {
+  background-color: #2d2e37;
+}

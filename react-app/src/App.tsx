@@ -5,6 +5,7 @@ import AuthCallback from "./pages/AuthCallback";
 import AppPage from "./pages/App";
 import WorkflowPage from "./pages/Workflow";
 import ProtectedRoute from "./components/ProtectedRoute";
+import "./App.css";
 
 const App: FC = () => {
     return (

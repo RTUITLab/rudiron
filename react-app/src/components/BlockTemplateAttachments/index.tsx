@@ -167,8 +167,10 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                 (elem.hardcoded ? elem.values : variables.map((v) => `${v.name} (${v.type})`)).length === 0
                                     ? ["Пусто"]
                                     : elem.hardcoded
-                                    ? elem.values
-                                    : variables.map((v) => `${v.name} (${v.type})`)
+                                        ? Array.isArray(elem.values)
+                                            ? elem.values.map(v => String(v)) // ← конвертируем все значения в строки
+                                            : ["Пусто"]
+                                        : variables.map((v) => `${v.name} (${v.type})`)
                             }
                             value={fieldValues[elem.name]}
                             disabled={isCreateVariableBlock && isSaved}

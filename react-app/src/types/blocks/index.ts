@@ -6,7 +6,7 @@ interface BaseField  {
 
 interface FieldType1 extends BaseField {
     type: 1;
-    values: number[] | string[];
+    values: number[] | string[] | Array<string | number>;
 }
 
 interface FieldType2 extends BaseField {
@@ -16,7 +16,7 @@ interface FieldType2 extends BaseField {
 
 interface FieldType3 extends BaseField {
     type: 3;
-    values: number[] | string[];
+    values: number[] | string[] | Array<string | number>;
 }
 
 export type Field = FieldType1 | FieldType2 | FieldType3;
