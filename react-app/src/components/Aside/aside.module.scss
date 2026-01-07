@@ -29,6 +29,26 @@
 }
 
 .AsideCategories {
-  overflow-x: scroll;
+  overflow-y: scroll;
   height: 100%;
+}
+
+.AsideCategories::-webkit-scrollbar {
+  width: 10px;
+}
+
+.AsideCategories::-webkit-scrollbar-track {
+  background: #2d2e37;
+  border: 1px #313131 solid;
+  border-radius: 5px;
+}
+
+.AsideCategories::-webkit-scrollbar-thumb {
+  background: #696969;
+  border-radius: 5px;
+  border: 1px #313131 solid;
+}
+
+.AsideCategories::-webkit-scrollbar-thumb:hover {
+  background: #5b5b5b;
 }

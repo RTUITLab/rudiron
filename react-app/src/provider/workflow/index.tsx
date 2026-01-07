@@ -7,9 +7,10 @@ import Blocks from "../../types/blocks";
 interface Props {
     categories: Categories,
     blocks: Blocks,
+    projectId?: string
 }
 
-export default function ProviderWorkspace({categories, blocks}: Props) {
+export default function ProviderWorkspace({categories, blocks, projectId}: Props) {
     const [codeState, setCodeState] = useState<CodeType[]>([]);
 
     const updateData = useCallback((newData: CodeType, operation: "set" | "delete") => {
@@ -24,7 +25,7 @@ export default function ProviderWorkspace({categories, blocks}: Props) {
 
     return (
         <CodeContext.Provider value={{value: codeState, updateData: updateData}}>
-            <Workspace blocks={blocks} categories={categories}/>
+            <Workspace blocks={blocks} categories={categories} projectId={projectId}/>
         </CodeContext.Provider>
     )
 }

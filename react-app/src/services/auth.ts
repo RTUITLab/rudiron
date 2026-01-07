@@ -47,8 +47,3 @@ export function clearUserData() {
     localStorage.removeItem('yandex_refresh_token');
     localStorage.removeItem('user_info');
 }
-
-
-
-
-

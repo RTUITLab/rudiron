@@ -6,30 +6,33 @@ import AppPage from "./pages/App";
 import WorkflowPage from "./pages/Workflow";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
+import Projects from "./pages/Projects";
+import Project from "./pages/Project";
+import Main from "./pages/Main";
 
 const App: FC = () => {
     return (
         <BrowserRouter>
             <Routes>
+                <Route path="/" element={<Main/>} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route
-                    path="/app"
+                    path="/project/:id"
                     element={
                         <ProtectedRoute>
-                            <AppPage />
+                            <Project/>
                         </ProtectedRoute>
                     }
                 />
                 <Route
-                    path="/workflow"
+                    path="/projects"
                     element={
                         <ProtectedRoute>
-                            <WorkflowPage />
+                            <Projects />
                         </ProtectedRoute>
                     }
                 />
-                <Route path="/" element={<Navigate to="/app" replace />} />
             </Routes>
         </BrowserRouter>
     );

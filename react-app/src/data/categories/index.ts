@@ -1,24 +1,23 @@
-import {CategoriesData} from "../../types/categories";
-
+import { CategoriesData } from "../../types/categories";
 
 export default function categoriesData(): CategoriesData {
     return {
         categories: [
             {
-                name: "Условия",
-                color: "#FF6F00" // ярко-оранжевый, почти горящий
+                name: "Структура",
+                color: "#00f915"
             },
             {
                 name: "Переменные",
-                color: "#FF1744" // неоново-красный
+                color: "#FF1744"
             },
             {
                 name: "Функции",
-                color: "#D500F9" // кислотный фиолетовый
+                color: "#D500F9"
             },
             {
-                name: "Структура",
-                color: "#00f915"
+                name: "Условия",
+                color: "#FF6F00"
             },
             {
                 name: "Циклы",
@@ -41,6 +40,5 @@ export default function categoriesData(): CategoriesData {
                 color: "#c1e43a"
             }
         ]
-    }
+    };
 }
-

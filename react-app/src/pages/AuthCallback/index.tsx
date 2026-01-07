@@ -31,7 +31,6 @@ export default function AuthCallback() {
             return;
         }
 
-        // Обмениваем код на токен
         fetch("https://oauth.yandex.ru/token", {
             method: "POST",
             headers: {
@@ -49,8 +48,7 @@ export default function AuthCallback() {
                 if (data.access_token) {
                     localStorage.setItem("yandex_token", data.access_token);
                     localStorage.setItem("yandex_refresh_token", data.refresh_token || "");
-                    
-                    // Получаем информацию о пользователе
+
                     return fetch("https://login.yandex.ru/info", {
                         headers: {
                             Authorization: `OAuth ${data.access_token}`,
@@ -63,8 +61,7 @@ export default function AuthCallback() {
             .then((res) => res.json())
             .then(async (userInfo) => {
                 localStorage.setItem("user_info", JSON.stringify(userInfo));
-                
-                // Сохраняем пользователя в базу данных через API
+
                 try {
                     await fetch("/api/auth/sync", {
                         method: "POST",
@@ -83,7 +80,7 @@ export default function AuthCallback() {
                 }
                 
                 setStatus("success");
-                setTimeout(() => navigate("/app"), 1000);
+                setTimeout(() => navigate("/projects"), 1000);
             })
             .catch((err) => {
                 console.error("Auth error:", err);

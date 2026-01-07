@@ -6,13 +6,19 @@ export interface WorkflowData {
     transform?: { x: number; y: number; scale: number };
 }
 
+const API_BASE = 'http://localhost:3001';
+
 export async function saveWorkflow(workflow: WorkflowData): Promise<WorkflowData> {
     const token = localStorage.getItem('yandex_token');
     if (!token) {
         throw new Error('Not authenticated');
     }
 
-    const url = workflow.id ? `/api/workflows/${workflow.id}` : '/api/workflows';
+    // Добавьте API_BASE
+    const url = workflow.id
+        ? `${API_BASE}/api/workflows/${workflow.id}`
+        : `${API_BASE}/api/workflows`;
+
     const method = workflow.id ? 'PUT' : 'POST';
 
     const body = workflow.id 
@@ -57,7 +63,7 @@ export async function getWorkflows(): Promise<WorkflowData[]> {
         throw new Error('Not authenticated');
     }
 
-    const response = await fetch('/api/workflows', {
+    const response = await fetch(`${API_BASE}/api/workflows`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -76,7 +82,7 @@ export async function deleteWorkflow(id: string): Promise<void> {
         throw new Error('Not authenticated');
     }
 
-    const response = await fetch(`/api/workflows/${id}`, {
+    const response = await fetch(`${API_BASE}/api/workflows/${id}`, {
         method: 'DELETE',
         headers: {
             Authorization: `Bearer ${token}`,
