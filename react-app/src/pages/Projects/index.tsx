@@ -6,6 +6,7 @@ import CardProject from "../../components/CardProject";
 import Loader from "../../components/Loader";
 import Header from "../../components/Header";
 import Modal from "../../components/Modal";
+import Empty from "../../empty.svg";
 
 export default function Projects() {
     const [projects, setProjects] = useState<WorkflowData[]>([]);
@@ -232,7 +233,13 @@ export default function Projects() {
                     </div>
                     {loading
                         ? <Loader/> : projects.length === 0
-                            ? <div>Пусто</div>
+                            ? <div className={Style.empty}>
+                                <img src={Empty} alt={"empty"} />
+                                <div>
+                                    <h2>Пусто</h2>
+                                    <p>Создайте свой первый проект</p>
+                                </div>
+                            </div>
                             :
                             <div className={Style.test}>
                                 <div className={Style.grid}>
