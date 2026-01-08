@@ -1,22 +1,44 @@
-import blocksData from "../blocks";
-import {CategoriesData} from "../../types/categories";
-
+import { CategoriesData } from "../../types/categories";
 
 export default function categoriesData(): CategoriesData {
     return {
         categories: [
             {
-                "name": "Условия",
-                "color": "#b17267"
+                name: "Структура",
+                color: "#00f915"
             },
             {
-                "name": "Переменные",
-                "color": "#7b917b"
+                name: "Переменные",
+                color: "#FF1744"
             },
             {
-                "name": "Функции",
-                "color": "#ab49c7"
+                name: "Функции",
+                color: "#D500F9"
+            },
+            {
+                name: "Условия",
+                color: "#FF6F00"
+            },
+            {
+                name: "Циклы",
+                color: "#0066ff"
+            },
+            {
+                name: "Ввод/Вывод",
+                color: "#FFD800"
+            },
+            {
+                name: "Время",
+                color: "#ff8000"
+            },
+            {
+                name: "Serial",
+                color: "#00ffd9"
+            },
+            {
+                name: "Математика",
+                color: "#c1e43a"
             }
         ]
-    }
+    };
 }

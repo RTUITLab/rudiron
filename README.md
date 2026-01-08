@@ -1,3 +1,37 @@
+## Запуск проекта
+
+### 1. Установка зависимостей
+```bash
+cd react-app
+npm install
+```
+
+### 2. Настройка PostgreSQL
+
+
+1. Установить Postgresql.
+2. Создать БД.
+3. Создать или изменить файл `.env` в папке `react-app`:
+   ```
+   DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/RUDIRON"
+   ```
+
+4. Нужно применить миграции:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+### 3. Запуск
+
+Запуск сервера и клиента одновременно:
+```bash
+npm run dev
+```
+
+Приложение откроется в браузере по адресу `http://localhost:3000`, сервер будет работать на `http://localhost:3001`.
+
+---
+
 ### План разработки
 
  - &#x2611; Шаблон для блоков

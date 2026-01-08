@@ -1,0 +1,50 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  color: #ffffff;
+  gap: 2rem;
+}
+
+.anim {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 100%;
+}
+
+.gerb {
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  transform: translateX(-50%);
+  width: 169px;
+}
+
+.title {
+  font-family: "Jersey 20", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 6rem;
+}
+
+.description {
+  font-family: "Russo One", sans-serif;
+  font-size: 2rem;
+  width: 400px;
+  text-align: center;
+}
+
+.button {
+  background-color: #00A1FF;
+  padding: 16px 32px;
+  font-size: 2rem;
+  color: #ffffff;
+  border-radius: 2.4rem;
+  cursor: pointer;
+}

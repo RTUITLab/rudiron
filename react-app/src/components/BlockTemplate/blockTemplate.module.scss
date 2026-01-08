@@ -8,12 +8,13 @@
   outline-style: solid;
   justify-content: flex-start;
   align-items: flex-start;
-  background-color: #2c2c2c;
+  background-color: #2d2e37;
   color: white;
   overflow: hidden;
   width: fit-content;
   > div
   {
+    min-width: 360px;
     width: 100%;
     padding: 16px;
     outline-width: 1px;
@@ -46,10 +47,6 @@
           border-radius: 0;
           background-color: rgba(0,0,0,0);
           cursor: pointer;
-          &:first-child
-          {
-            cursor: grab;
-          }
           &:hover
           {
             > svg {
@@ -61,6 +58,14 @@
             width: 24px;
             height: 24px;
             transition: 300ms transform;
+          }
+        }
+        .DragButton
+        {
+          cursor: grab;
+          &:active
+          {
+            cursor: grabbing;
           }
         }
       }

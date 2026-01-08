@@ -22,6 +22,12 @@
     "useUnknownInCatchVariables": false,
   },
   "include": [
-    "src"
-  ]
+    "src",
+    "server"
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

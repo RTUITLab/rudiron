@@ -4,21 +4,42 @@
   grid-template-columns: 8px 1fr;
   grid-template-rows: 1fr;
   gap: 0;
-  border-radius: 8px;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
   overflow: hidden;
-  background-color: #383838;
-  transition: 300ms opacity;
+  background-color: #2D2E37;
+  transition: opacity 300ms;
+  user-select: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.01);
+  
+  &[aria-pressed="true"] {
+    overflow: visible;
+    z-index: 1000;
+  }
   div:last-child {
     padding: 16px;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: flex-start;
+    pointer-events: none;
     > p {
       width: 100%;
       font-size: 13px;
       font-weight: bold;
       color: white;
+      pointer-events: none;
     }
+  }
+  div:first-child {
+    pointer-events: none;
   }
 }
