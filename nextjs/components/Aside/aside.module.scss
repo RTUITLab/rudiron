@@ -1,0 +1,53 @@
+.Aside
+{
+  max-height: 70%;
+  position: absolute;
+  flex-shrink: 0;
+  flex-grow: 0;
+  transform: translateY(-50%); top: 50%;
+  left: 16px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  z-index: 999;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.01); // лёгкая прозрачность
+  backdrop-filter: blur(10px); // размытие фона
+  border: 1px solid rgba(255, 255, 255, 0.1); // имитация стекла
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); // лёгкая тень
+  text-align: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    backdrop-filter: blur(15px);
+  }
+}
+
+.AsideCategories {
+  overflow-y: scroll;
+  height: 100%;
+}
+
+.AsideCategories::-webkit-scrollbar {
+  width: 10px;
+}
+
+.AsideCategories::-webkit-scrollbar-track {
+  background: #2d2e37;
+  border: 1px #313131 solid;
+  border-radius: 5px;
+}
+
+.AsideCategories::-webkit-scrollbar-thumb {
+  background: #696969;
+  border-radius: 5px;
+  border: 1px #313131 solid;
+}
+
+.AsideCategories::-webkit-scrollbar-thumb:hover {
+  background: #5b5b5b;
+}
