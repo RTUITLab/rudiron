@@ -611,6 +611,7 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                 onClose={() => setIsCodeModalOpen(false)}
                 title="Прошивка устройства"
                 showCloseButton={true}
+                isWorkspace={true}
             >
                 <FlasherPanel />
             </Modal>

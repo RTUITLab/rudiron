@@ -8,6 +8,7 @@ interface ModalProps {
     children: React.ReactNode;
     showCloseButton?: boolean;
     className?: string;
+    isWorkspace?: boolean;
 }
 
 export default function Modal({
@@ -17,6 +18,7 @@ export default function Modal({
                                   children,
                                   showCloseButton = true,
                                   className = "",
+    isWorkspace = false,
                               }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -51,7 +53,6 @@ export default function Modal({
         }
     };
 
-    // Предотвращаем зажатие мышки и drag & drop на wrapper
     const preventDrag = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -64,8 +65,11 @@ export default function Modal({
             ref={wrapperRef}
             className={`${styles.modal__wrapper} ${className}`}
             onClick={handleWrapperClick}
-            onMouseDown={preventDrag}
-            onDragStart={preventDrag}
+            {...(isWorkspace ? {
+                onMouseDown: preventDrag,
+                onDragStart: preventDrag
+            }
+            : {})}
         >
             <div
                 ref={modalRef}

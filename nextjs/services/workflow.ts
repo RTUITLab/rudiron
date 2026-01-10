@@ -6,6 +6,7 @@ export interface WorkflowData {
     description?: string;
     blocks: any[];
     transform?: { x: number; y: number; scale: number };
+    liked: boolean;
 }
 
 export async function saveWorkflow(workflow: WorkflowData): Promise<WorkflowData> {
@@ -29,6 +30,7 @@ export async function saveWorkflow(workflow: WorkflowData): Promise<WorkflowData
         description: workflow.description || null,
         blocks: workflow.blocks || [],
         transform: workflow.transform || null,
+        liked: workflow.liked
     };
 
     try {

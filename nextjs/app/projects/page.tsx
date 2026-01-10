@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 import Empty from "@/assets/empty.svg";
 import Image from "next/image";
+import ProjectsLoader from "@/components/ProjectsLoader";
 
 export default function Projects() {
     const [projects, setProjects] = useState<WorkflowData[]>([]);
@@ -56,6 +57,16 @@ export default function Projects() {
         }
     };
 
+    const handleLikeChange = (projectId: string, liked: boolean) => {
+        setProjects(prevProjects =>
+            prevProjects.map(project =>
+                project.id === projectId
+                    ? {...project, liked}
+                    : project
+            )
+        );
+    }
+
     const createProject = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -68,18 +79,17 @@ export default function Projects() {
                 name: projectName.trim(),
                 blocks: [],
                 transform: { x: 0, y: 0, scale: 1 },
+                liked: false,
             });
 
             if (!newProject || !newProject.id || typeof newProject.id !== "string") {
                 throw new Error("Не удалось получить ID созданного проекта");
             }
-
-            await loadProjects();
+            setProjects(prev => [newProject, ...prev]);
             closeModal();
             router.push(`/project/${newProject.id}`);
         } catch (error: any) {
             console.error("Ошибка создания проекта:", error);
-            alert(`Ошибка создания проекта: ${error.message}`);
         }
     };
 
@@ -94,13 +104,19 @@ export default function Projects() {
                 id: modalState.projectId,
                 name: projectName.trim(),
                 blocks: [],
+                liked: false,
             });
 
-            await loadProjects();
+            setProjects(prevProjects =>
+                prevProjects.map(project =>
+                    project.id === modalState.projectId
+                        ? {...project, name: projectName.trim()}
+                        : project
+                )
+            );
             closeModal();
         } catch (error: any) {
             console.error("Ошибка редактирования проекта:", error);
-            alert(`Ошибка редактирования проекта: ${error.message}`);
         }
     };
 
@@ -109,11 +125,13 @@ export default function Projects() {
 
         try {
             await deleteWorkflow(modalState.projectId);
-            await loadProjects();
+
+            setProjects(prevProjects =>
+                prevProjects.filter(project => project.id !== modalState.projectId)
+            );
             closeModal();
         } catch (error: any) {
             console.error("Ошибка удаления проекта:", error);
-            alert(`Ошибка удаления проекта: ${error.message}`);
         }
     };
 
@@ -211,6 +229,9 @@ export default function Projects() {
         }
     };
 
+    const allProjects = projects;
+    const likedProjects = projects.filter((p => p.liked === true));
+
     return (
         <>
             <Header/>
@@ -218,11 +239,42 @@ export default function Projects() {
                 <button onClick={() => openModal("create")} className={Style.createButton}>Создать</button>
                 <div className={Style.block}>
                     <div className={Style.blockTitle}>
+                        <h2 className={Style.title}>Избранное</h2>
+                        <div className={Style.line}></div>
+                    </div>
+                    {loading
+                        ? <div className={Style.empty}><ProjectsLoader/></div> : likedProjects.length === 0
+                            ? <div className={Style.empty}>
+                                <Image src={Empty} alt={"empty"} />
+                                <div>
+                                    <h2>Пусто</h2>
+                                    <p>Добавьте проект в избранное</p>
+                                </div>
+                            </div>
+                            :
+                            <div className={Style.test}>
+                                <div className={Style.grid}>
+                                    {likedProjects.map((project) => (
+                                        <CardProject
+                                            key={project.id}
+                                            id={project.id || undefined}
+                                            name={project.name}
+                                            description={project.description}
+                                            liked={project.liked}
+                                            onEdit={() => openModal("edit", project.id, project.name)}
+                                            onDelete={() => openModal("delete", project.id, project.name)}
+                                            onLikeChange={handleLikeChange}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                    }
+                    <div className={Style.blockTitle}>
                         <h2 className={Style.title}>Мои проекты</h2>
                         <div className={Style.line}></div>
                     </div>
                     {loading
-                        ? <Loader/> : projects.length === 0
+                        ? <div className={Style.empty}><ProjectsLoader/></div> : projects.length === 0
                             ? <div className={Style.empty}>
                                 <Image src={Empty} alt={"empty"} />
                                 <div>
@@ -233,14 +285,16 @@ export default function Projects() {
                             :
                             <div className={Style.test}>
                                 <div className={Style.grid}>
-                                    {projects.map((project) => (
+                                    {allProjects.map((project) => (
                                         <CardProject
                                             key={project.id}
                                             id={project.id || undefined}
                                             name={project.name}
                                             description={project.description}
+                                            liked={project.liked}
                                             onEdit={() => openModal("edit", project.id, project.name)}
                                             onDelete={() => openModal("delete", project.id, project.name)}
+                                            onLikeChange={handleLikeChange}
                                         />
                                     ))}
                                 </div>

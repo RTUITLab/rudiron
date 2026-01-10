@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
-        const { name, description, blocks, transform } = body;
+        const { name, description, blocks, transform, liked } = body;
         
         if (!name || typeof name !== "string" || name.trim().length === 0) {
             return Response.json({ error: "name is required and must be a non-empty string" }, { status: 400 });
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
                 description: description || null,
                 blocks: blocks || [],
                 transform: transform || null,
+                liked: liked !== undefined ? liked : false,
                 userId: user.id,
             },
         });

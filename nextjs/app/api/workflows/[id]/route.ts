@@ -35,7 +35,7 @@ export async function PUT(
 
         const { id } = await params;
         const body = await req.json();
-        const { name, description, blocks, transform } = body;
+        const { name, description, blocks, transform, liked } = body;
 
         const existingWorkflow = await prisma.workflow.findFirst({
             where: { id, userId: user.id },
@@ -50,6 +50,7 @@ export async function PUT(
             description?: string | null;
             blocks?: any;
             transform?: any;
+            liked?: boolean;
         } = {};
 
         if (name !== undefined) {
@@ -70,6 +71,14 @@ export async function PUT(
 
         if (transform !== undefined) {
             updateData.transform = transform;
+        }
+
+        if (liked !== undefined) {
+            if (typeof liked === "boolean") {
+                updateData.liked = liked;
+            } else {
+                return Response.json({ error: "liked must be a boolean" }, { status: 400 });
+            }
         }
 
         const workflow = await prisma.workflow.update({
