@@ -43,9 +43,7 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
         });
     };
 
-    // Отслеживаем изменения fieldValues и вызываем onFieldValuesChange асинхронно только при реальных изменениях
     useEffect(() => {
-        // Пропускаем начальную загрузку
         if (isInitialMountRef.current) {
             isInitialMountRef.current = false;
             previousFieldValuesRef.current = JSON.stringify(fieldValues);
@@ -53,8 +51,7 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
         }
         
         const currentKey = JSON.stringify(fieldValues);
-        
-        // Вызываем только если значения действительно изменились
+
         if (onFieldValuesChange && currentKey !== previousFieldValuesRef.current && Object.keys(fieldValues).length > 0) {
             previousFieldValuesRef.current = currentKey;
             queueMicrotask(() => {
@@ -64,17 +61,13 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fieldValues]);
 
-    // Восстанавливаем значения из initialFieldValues при загрузке
     useEffect(() => {
         if (initialFieldValues && Object.keys(initialFieldValues).length > 0) {
             setFieldValues(initialFieldValues);
-            // Не вызываем onFieldValuesChange здесь, так как это начальная загрузка
-            // useEffect выше обработает это после установки значений
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Устанавливаем "Выбор" по умолчанию для var-selector
     useEffect(() => {
         block.fields.forEach((field) => {
             if (field.type === 1 && !field.hardcoded && field.name === "var-selector" && fieldValues[field.name] === undefined) {
@@ -86,7 +79,6 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
 
     const isCreateVariableBlock = useMemo(() => block.block_name === "create_variable", [block.block_name]);
 
-    // Автоматическое добавление/обновление переменной при заполнении полей
     useEffect(() => {
         if (!isCreateVariableBlock) return;
 
@@ -94,9 +86,7 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
         const varType = String(fieldValues["var-type"] ?? "").trim();
         const previousName = previousVarNameRef.current;
 
-        // Не создаем переменную, если тип равен "Выбор" или имя пустое/равно "Выбор"
         if (varType === "Выбор" || !varName || varName === "Выбор") {
-            // Если была переменная, удаляем её
             if (previousName && previousName !== "" && previousName !== "Выбор") {
                 removeVariable(previousName);
                 previousVarNameRef.current = "";
@@ -104,32 +94,26 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
             return;
         }
 
-        // Если имя переменной заполнено и тип не "Выбор"
         if (varName) {
             const type = varType || "int";
-            
-            // Если имя изменилось, обрабатываем старую переменную
+
             if (previousName && previousName !== varName && previousName !== "" && previousName !== "Выбор") {
                 const oldVarExists = variables.some(v => v.name === previousName);
                 const newVarExists = variables.some(v => v.name === varName);
                 
                 if (oldVarExists) {
                     if (!newVarExists) {
-                        // Переименовываем переменную, если новая не существует
                         updateVariable(previousName, varName, type);
                     } else {
-                        // Если новая переменная уже существует, удаляем старую
                         removeVariable(previousName);
                     }
                 }
             }
-            
-            // Добавляем или обновляем переменную
+
             const varExists = variables.some(v => v.name === varName);
             if (!varExists) {
                 addVariable(varName, type);
             } else {
-                // Обновляем тип существующей переменной, если он изменился
                 const existingVar = variables.find(v => v.name === varName);
                 if (existingVar && existingVar.type !== type) {
                     updateVariable(varName, varName, type);
@@ -149,11 +133,9 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
 
     const lastPayloadRef = useRef<string>("");
 
-    // Обновляем код блока при изменении значений или детей
     useEffect(() => {
         const children = Object.values(childrenByField).flat();
 
-        // Для блока создания переменной: не генерируем код, если тип или имя равны "Выбор"
         if (isCreateVariableBlock) {
             const varName = String(fieldValues["var-name"] ?? "").trim();
             const varType = String(fieldValues["var-type"] ?? "").trim();
@@ -174,7 +156,6 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
 
             if (field.type === 1 || field.type === 3) {
                 const value = fieldValues[field.name] ?? "";
-                // Пропускаем "Выбор" в коде
                 const codeValue = value === "Выбор" ? "" : String(value);
                 code = code.replace(new RegExp(placeholder, "g"), codeValue);
             }
@@ -200,7 +181,6 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
         onChange(codeData);
     }, [block.default_code, block.fields, childrenByField, fieldValues, isCreateVariableBlock]);
 
-    // Удаляем переменную при удалении блока
     const handleDeleteBlock = () => {
         if (isCreateVariableBlock) {
             const varName = String(fieldValues["var-name"] ?? "").trim();
@@ -273,7 +253,6 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                     const newKey = JSON.stringify(blocks);
                                     
                                     if (prevKey !== newKey && onNestedBlocksChange) {
-                                        // Откладываем вызов до завершения рендеринга
                                         queueMicrotask(() => {
                                             onNestedBlocksChange(elem.name, blocks);
                                         });
@@ -292,7 +271,6 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                     );
                                     
                                     if (onNestedBlocksChange) {
-                                        // Откладываем вызов до завершения рендеринга
                                         queueMicrotask(() => {
                                             onNestedBlocksChange(elem.name, updatedBlocks);
                                         });

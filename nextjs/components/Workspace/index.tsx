@@ -364,8 +364,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
 
                         if (blockData.nestedBlocks && typeof blockData.nestedBlocks === 'object') {
                             restoredNestedBlocks[blockId] = blockData.nestedBlocks;
-                            // fieldValues вложенных блоков уже должны быть в структуре nestedBlocks
-                            // Проверяем и логируем для отладки
                             Object.keys(blockData.nestedBlocks).forEach(fieldName => {
                                 const nestedBlocksArray = blockData.nestedBlocks[fieldName];
                                 if (Array.isArray(nestedBlocksArray)) {
@@ -537,7 +535,7 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                     onChildrenChange={handleNestedBlocksChange}
                     initialNestedBlocks={nestedBlocks[b.id]}
                     initialFieldValues={blockFieldValues[b.id]}
-                    onFieldValuesChange={(fieldValues) => handleFieldValuesChange(b.id, fieldValues)}
+                    onFieldValuesChange={(fieldValues: any) => handleFieldValuesChange(b.id, fieldValues)}
                 />
             )),
         [workspaceBlocks, nestedBlocks]

@@ -39,7 +39,6 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
     const isInitialMountRef = useRef(true);
     const isUpdatingFromParentRef = useRef(false);
 
-    // Нормализуем объект для стабильного сравнения
     const normalizeBlocks = (blocks: BlockAttachmentsTemplate[]) => {
         return JSON.stringify(
             blocks
@@ -76,8 +75,7 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
             }
             return;
         }
-        
-        // Обновляем только если initialBlocks действительно изменились
+
         if (initialBlocks) {
             const normalizedInitial = normalizeBlocks(initialBlocks);
             if (normalizedInitial !== initialBlocksRef.current) {
@@ -144,14 +142,12 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
     const lastBlocksRef = useRef<string>("");
     const isInitialMountRef2 = useRef(true);
 
-    // Отдельный useEffect для вызова onBlocksChange после обновления blockAttachments или nestedBlocksByBlockId
     useEffect(() => {
         if (isInitialMountRef2.current) {
             isInitialMountRef2.current = false;
             return;
         }
 
-        // Пропускаем если обновление идет от родителя
         if (isUpdatingFromParentRef.current) {
             isUpdatingFromParentRef.current = false;
             return;

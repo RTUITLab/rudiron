@@ -23,6 +23,6 @@ export default function generatorCode(codeFormat: string): string {
     }
 
     const formatted = result.join('\n');
-    console.log("📜 Generated code:\n" + formatted);
+    console.log(formatted);
     return formatted;
 }

@@ -19,7 +19,6 @@ export default function ProviderWorkspace({categories, blocks, projectId}: Props
                 const existingIndex = prevState.findIndex(v => v.id === newData.id);
                 if (existingIndex !== -1) {
                     const existing = prevState[existingIndex];
-                    // Проверяем, изменились ли code или children
                     const codeChanged = existing.code !== newData.code;
                     const childrenChanged = existing.children.length !== newData.children.length ||
                         existing.children.some((child, i) => 
@@ -27,7 +26,7 @@ export default function ProviderWorkspace({categories, blocks, projectId}: Props
                         );
                     
                     if (!codeChanged && !childrenChanged) {
-                        return prevState; // Ничего не изменилось
+                        return prevState;
                     }
                 }
                 

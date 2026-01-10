@@ -15,16 +15,13 @@ interface Props {
 export default function BlockList({ title, systemTitle, values, setValue, value: controlledValue, disabled = false }: Props) {
     const [internalValue, setInternalValue] = useState<string | number | undefined>(undefined);
     const isControlled = controlledValue !== undefined;
-    // Приоритет: "Выбор" > "Пусто" > первое значение
     const defaultValue = values.includes("Выбор") ? "Выбор" : (values.includes("Пусто") ? "Пусто" : (values.length > 0 ? values[0] : undefined));
     const currentValue = isControlled ? controlledValue : (internalValue ?? defaultValue);
     const currentIndex = values.findIndex(v => v === currentValue);
     const selectedIndex = currentIndex >= 0 ? currentIndex : 0;
 
-    // Обновляем internalValue при изменении controlledValue
     useEffect(() => {
         if (isControlled && controlledValue !== undefined) {
-            // Не обновляем internalValue для контролируемого компонента, но убеждаемся, что значение правильно обрабатывается
         }
     }, [isControlled, controlledValue]);
 
@@ -32,7 +29,6 @@ export default function BlockList({ title, systemTitle, values, setValue, value:
         if (values.length > 0 && !isControlled && internalValue === undefined) {
             const defaultVal = values.includes("Выбор") ? "Выбор" : (values.includes("Пусто") ? "Пусто" : values[0]);
             setInternalValue(defaultVal);
-            // Вызываем setValue только если значение действительно изменилось
             if (internalValue !== defaultVal) {
                 setValue(defaultVal);
             }

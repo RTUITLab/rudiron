@@ -36,7 +36,6 @@ export function useFlasher() {
 
       const buffer = new Uint8Array(await binFile.arrayBuffer());
 
-      // создаём loader с baudrate 115200
       const loader = new ESPLoader(device, { baudrate: 115200 });
 
       loader.on("progress", (p) => setProgress(Math.floor(p * 100)));
