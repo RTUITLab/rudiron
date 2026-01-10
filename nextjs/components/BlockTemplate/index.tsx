@@ -217,15 +217,15 @@ export default function BlockTemplate({
                 onBlocksChange={(blocks) => {
                   setNestedBlocksByField((prev) => {
                     const prevBlocks = prev[elem.name] || [];
-                    // Сравниваем только блоки для этого поля
+                    // Сравниваем только блоки для этого поля, включая fieldValues
                     const prevKey = JSON.stringify(
                       prevBlocks
-                        .map(b => ({ id: b.id, color: b.color, block: b.block, nestedBlocks: b.nestedBlocks }))
+                        .map(b => ({ id: b.id, color: b.color, block: b.block, nestedBlocks: b.nestedBlocks, fieldValues: b.fieldValues || {} }))
                         .sort((a, b) => a.id - b.id)
                     );
                     const newKey = JSON.stringify(
                       blocks
-                        .map(b => ({ id: b.id, color: b.color, block: b.block, nestedBlocks: b.nestedBlocks }))
+                        .map(b => ({ id: b.id, color: b.color, block: b.block, nestedBlocks: b.nestedBlocks, fieldValues: b.fieldValues || {} }))
                         .sort((a, b) => a.id - b.id)
                     );
                     

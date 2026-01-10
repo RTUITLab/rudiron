@@ -120,23 +120,6 @@ export default function blocksData(): BlocksData {
                 "workspace": false,
             },
             {
-                "block_name": "select_variable",
-                "menu_name": "Переменная",
-                "category": "Переменные",
-                "fields": [
-                    {
-                        "name": "var-selector",
-                        "placeholder": "Выберите переменную",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    }
-
-                ],
-                "default_code": "%var-selector%",
-                "workspace": false,
-            },
-            {
                 "block_name": "set_variable",
                 "menu_name": "Присвоить значение",
                 "category": "Переменные",

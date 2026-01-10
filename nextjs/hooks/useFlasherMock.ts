@@ -15,7 +15,7 @@ export function useFlasherMock() {
     console.log("🔹 Мок: начинаем прошивку", binFile.name);
     for (let p = 0; p <= 100; p += 10) {
       setProgress(p);
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 1000));
     }
     console.log("✅ Мок-прошивка завершена");
     setProgress(0);

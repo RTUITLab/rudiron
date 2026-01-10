@@ -21,11 +21,21 @@ export default function BlockList({ title, systemTitle, values, setValue, value:
     const currentIndex = values.findIndex(v => v === currentValue);
     const selectedIndex = currentIndex >= 0 ? currentIndex : 0;
 
+    // Обновляем internalValue при изменении controlledValue
+    useEffect(() => {
+        if (isControlled && controlledValue !== undefined) {
+            // Не обновляем internalValue для контролируемого компонента, но убеждаемся, что значение правильно обрабатывается
+        }
+    }, [isControlled, controlledValue]);
+
     useEffect(() => {
         if (values.length > 0 && !isControlled && internalValue === undefined) {
             const defaultVal = values.includes("Выбор") ? "Выбор" : (values.includes("Пусто") ? "Пусто" : values[0]);
             setInternalValue(defaultVal);
-            setValue(defaultVal);
+            // Вызываем setValue только если значение действительно изменилось
+            if (internalValue !== defaultVal) {
+                setValue(defaultVal);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [values, systemTitle]);

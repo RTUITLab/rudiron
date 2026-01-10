@@ -9,6 +9,7 @@ export interface BlockAttachmentsTemplate {
     color: string;
     block: Block;
     nestedBlocks?: Record<string, BlockAttachmentsTemplate[]>;
+    fieldValues?: Record<string, string | number | undefined>;
 }
 
 interface Props {
@@ -51,7 +52,8 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
                         .reduce((acc, key) => {
                             acc[key] = b.nestedBlocks![key];
                             return acc;
-                        }, {} as Record<string, BlockAttachmentsTemplate[]>) : {}
+                        }, {} as Record<string, BlockAttachmentsTemplate[]>) : {},
+                    fieldValues: b.fieldValues || {}
                 }))
                 .sort((a, b) => a.id - b.id)
         );
@@ -158,7 +160,8 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
         if (onBlocksChange) {
             const updatedWithNested = blockAttachments.map(b => ({
                 ...b,
-                nestedBlocks: nestedBlocksByBlockId[b.id] || b.nestedBlocks || {}
+                nestedBlocks: nestedBlocksByBlockId[b.id] || b.nestedBlocks || {},
+                fieldValues: b.fieldValues || {}
             }));
             const normalizedKey = normalizeBlocks(updatedWithNested);
             if (normalizedKey !== lastBlocksRef.current) {
@@ -215,6 +218,27 @@ export default function BlockAttachments({ title, onChange, onBlocksChange, init
                             });
                         }}
                         initialNestedBlocks={blockAttachment.nestedBlocks || {}}
+                        initialFieldValues={blockAttachment.fieldValues}
+                        onFieldValuesChange={(fieldValues) => {
+                            setBlockAttachments((prevBlocks: BlockAttachmentsTemplate[]) => {
+                                const updated = prevBlocks.map(b => 
+                                    b.id === blockAttachment.id 
+                                        ? { ...b, fieldValues }
+                                        : b
+                                );
+                                if (onBlocksChange) {
+                                    queueMicrotask(() => {
+                                        const updatedWithNested = updated.map(b => ({
+                                            ...b,
+                                            nestedBlocks: nestedBlocksByBlockIdRef.current[b.id] || b.nestedBlocks || {},
+                                            fieldValues: b.fieldValues || {}
+                                        }));
+                                        onBlocksChange(updatedWithNested);
+                                    });
+                                }
+                                return updated;
+                            });
+                        }}
                     />
                 ))}
                 <div className={Style.Image}>

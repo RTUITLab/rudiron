@@ -67,7 +67,6 @@ export default function FlasherPanel() {
 
     const handleUpload = () => {
         if (!binFile) {
-            alert("Выберите BIN файл для загрузки!");
             return;
         }
         uploadBin(binFile);
@@ -77,12 +76,12 @@ export default function FlasherPanel() {
         <div>
             <div style={{ position: "relative" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-                    <label style={{ fontWeight: "bold", textAlign: "start", marginLeft: "5px" }}>
+                    <label style={{ fontWeight: "bold", textAlign: "start", marginLeft: "5px", marginBottom: "10px" }}>
                         Отформатированный .ino код
                     </label>
 
                     {!isCopied && (
-                        <div onClick={() => copying(formattedCode)} style={{ height: "20px" }}>
+                        <div onClick={() => copying(formattedCode)} style={{ height: "20px", cursor: "pointer" }}>
                             <svg viewBox="0 0 24 24" fill="#8f8f8f" height={20}>
                                 <path d="M6.6 11.4c0-2.726 0-4.089.844-4.936S9.644 5.614 12.36 5.614h2.88c2.715 0 4.073 0 4.916.844.844.847.844 2.21.844 4.936v4.819c0 2.726 0 4.089-.844 4.936s-2.201.844-4.916.844h-2.88c-2.715 0-4.073 0-4.916-.844S6.6 18.943 6.6 16.217V11.4z"/>
                                 <path d="M4.172 3.172C3 4.344 3 6.23 3 10v2c0 3.771 0 5.657 1.172 6.828.618.618 1.434.91 2.62 1.048-.191-.84-.191-1.996-.191-3.659V11.4c0-2.726 0-4.089.844-4.936.843-.847 2.201-.847 4.916-.847h2.88c1.652 0 2.801 0 3.638.19-.137-1.194-.43-2.014-1.049-2.632C16.657 2 14.77 2 11 2c-3.771 0-5.657 0-6.828 1.172z" opacity="0.5"/>
@@ -108,40 +107,63 @@ export default function FlasherPanel() {
                 />
             </div>
 
-            <div style={{ margin: "10px 0", display: "flex", gap: "10px" }}>
+            <span style={{ fontSize: "16px", color: "#A7A7A7", fontWeight: "500", marginBottom: "10px", textAlign: "start", display: "block", marginTop: "10px" }}>
+                ZIP-архив с файлом .ino необходимо распаковать и запустить, он откроется в среде разработки Arduino IDE, где необходимо скомпилировать .ino файл и загрузить скомпилированный .bin файл на устройство
+            </span>
+
+
+            <div style={{ margin: "10px 0 24px" }}>
                 <button onClick={handleDownloadIno} disabled={!formattedCode} className={Style.button}>
                     Скачать как ZIP (.ino)
                 </button>
             </div>
 
-            <div style={{ marginTop: 10, marginBottom: 10 }}>
-                <button onClick={connectDevice}>
-                    {isConnected ? `Подключено: ${device?.productName}` : "Подключить устройство (мок)"}
-                </button>
+            <span style={{ fontSize: "16px", color: "#A7A7A7", fontWeight: "500", marginBottom: "10px", textAlign: "start", display: "block" }}>
+                Далее необходимо подключить устройство и загрузить BIN файл
+                </span>
+
+            <div style={{ margin: 10, justifyContent: "start", paddingBottom: "20px"}}>
+                {isConnected ? <div style={{display: "flex", justifyContent: "space-between", gap: "8px"}}> 
+                    <span style={{fontSize: "16px", color: "#A7A7A7", fontWeight: "bold"}}>🟢 Подключено:</span> 
+                    <span style={{fontSize: "16px", color: "#A7A7A7", fontWeight: "bold"}}>{device?.productName}</span> 
+                    </div> : 
+                <button onClick={connectDevice} className={Style.button} style={{width: "50%"}}>
+                    Подключить устройство
+                </button>}
             </div>
+            <label style={{ fontWeight: "bold", textAlign: "start", marginLeft: "5px", marginBottom: "10px", display: "block" }}>
+                        Скомпилированный .bin
+                    </label>
+            <input className={Style.inputFile}
+                    type="file"
+                    accept=".bin"
+                    onChange={(e) => {
+                        if (e.target.files?.[0]) setBinFile(e.target.files[0]);
+                    }}
+                />
+
+                <div className={Style.progressSection}>
+                    <div className={Style.progressHeader}>
+                        <span className={Style.progressLabel}>Прогресс прошивки:</span>
+                        <span className={Style.progressValue}>{progress}%</span>
+                    </div>
+                
+                    <div className={Style.customProgress}>
+                        <div 
+                        className={Style.progressFill} 
+                        style={{ width: `${progress}%` }}
+                        />
+                        <div className={Style.progressStripes} />
+                    </div>
+                </div>
 
             <div style={{ marginTop: 10, padding: "10px", borderRadius: "5px" }}>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                    <input
-                        type="file"
-                        accept=".bin"
-                        onChange={(e) => {
-                            if (e.target.files?.[0]) setBinFile(e.target.files[0]);
-                        }}
-                        style={{ flex: 1 }}
-                    />
-                    <button onClick={handleUpload} style={{ padding: "8px 16px" }}>
+                    <button onClick={handleUpload} className={Style.button} disabled={!binFile && !isConnected}>
                         Загрузить BIN
                     </button>
                 </div>
             </div>
-
-            {progress > 0 && (
-                <div style={{ marginTop: 10 }}>
-                    <div>Прогресс: {progress}%</div>
-                    <progress value={progress} max="100" style={{ width: "100%" }} />
-                </div>
-            )}
         </div>
     );
 }

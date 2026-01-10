@@ -15,9 +15,12 @@ interface Props {
     codeId?: number;
     onNestedBlocksChange?: (fieldName: string, nestedBlocks: BlockAttachmentsTemplate[]) => void;
     initialNestedBlocks?: Record<string, BlockAttachmentsTemplate[]>;
+    initialFieldValues?: Record<string, string | number | undefined>;
+    onFieldValuesChange?: (fieldValues: Record<string, string | number | undefined>) => void;
 }
 
-export default function BlockTemplateAttachments({ color, block, deleteBlock, onChange, codeId, onNestedBlocksChange, initialNestedBlocks }: Props) {
+export default function BlockTemplateAttachments({ color, block, deleteBlock, onChange, codeId, onNestedBlocksChange, initialNestedBlocks, initialFieldValues, onFieldValuesChange }: Props) {
+
     const { variables, addVariable, removeVariable, updateVariable } = useVariables();
     const [fieldValues, setFieldValues] = useState<Record<string, string | number | undefined>>({});
     const [childrenByField, setChildrenByField] = useState<Record<string, CodeType[]>>({});
@@ -31,24 +34,45 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
         e.stopPropagation();
     };
 
+    const previousFieldValuesRef = useRef<string>("");
+    const isInitialMountRef = useRef(true);
+    
     const setFieldValue = (name: string, value: string | number | undefined) => {
-        setFieldValues((prev) => ({ ...prev, [name]: value }));
+        setFieldValues((prev) => {
+            return { ...prev, [name]: value };
+        });
     };
 
-    // Устанавливаем значения по умолчанию для предзаполненных полей
+    // Отслеживаем изменения fieldValues и вызываем onFieldValuesChange асинхронно только при реальных изменениях
     useEffect(() => {
-        block.fields.forEach((field) => {
-            if (field.type === 1 && field.hardcoded && fieldValues[field.name] === undefined) {
-                // Для var-type устанавливаем "Выбор" по умолчанию
-                if (field.name === "var-type") {
-                    setFieldValue(field.name, "Выбор");
-                } else if (field.values.length > 0) {
-                    setFieldValue(field.name, field.values[0]);
-                }
-            }
-        });
+        // Пропускаем начальную загрузку
+        if (isInitialMountRef.current) {
+            isInitialMountRef.current = false;
+            previousFieldValuesRef.current = JSON.stringify(fieldValues);
+            return;
+        }
+        
+        const currentKey = JSON.stringify(fieldValues);
+        
+        // Вызываем только если значения действительно изменились
+        if (onFieldValuesChange && currentKey !== previousFieldValuesRef.current && Object.keys(fieldValues).length > 0) {
+            previousFieldValuesRef.current = currentKey;
+            queueMicrotask(() => {
+                onFieldValuesChange(fieldValues);
+            });
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [block.fields]);
+    }, [fieldValues]);
+
+    // Восстанавливаем значения из initialFieldValues при загрузке
+    useEffect(() => {
+        if (initialFieldValues && Object.keys(initialFieldValues).length > 0) {
+            setFieldValues(initialFieldValues);
+            // Не вызываем onFieldValuesChange здесь, так как это начальная загрузка
+            // useEffect выше обработает это после установки значений
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Устанавливаем "Выбор" по умолчанию для var-selector
     useEffect(() => {
@@ -229,7 +253,9 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                             }
                             value={fieldValues[elem.name]}
                             setValue={(newValue: string | number) => {
-                                if (!elem.hardcoded && variables.length === 0 && newValue !== "Выбор") return;
+                                if (!elem.hardcoded && variables.length === 0 && newValue !== "Выбор") {
+                                    return;
+                                }
                                 setFieldValue(elem.name, newValue);
                             }}
                         />

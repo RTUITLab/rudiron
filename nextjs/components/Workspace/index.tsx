@@ -11,6 +11,8 @@ import {saveWorkflow, getWorkflow} from "@/services/workflow";
 import Loader from "../Loader";
 import {useRouter} from "next/navigation";
 import {useVariables} from "@/context/variables";
+import Modal from "@/components/Modal";
+import FlasherPanel from "@/components/FlasherPanel";
 
 interface Props {
     categories: any;
@@ -48,6 +50,7 @@ export default function Workspace({categories, blocks, projectId}: Props) {
     const [workflowName, setWorkflowName] = useState<string>("");
     const [saveStatus, setSaveStatus] = useState<string | null>(null);
     const [workflowId, setWorkflowId] = useState<string | null>(null);
+    const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
 
     const refContainer = useRef<HTMLDivElement | null>(null);
     const refLast = useRef<Vec2>({x: 0, y: 0});
@@ -209,7 +212,14 @@ export default function Workspace({categories, blocks, projectId}: Props) {
         );
         const roots = codeState.filter((i: CodeType) => !childIds.has(i.id));
         const code = roots.map((i: CodeType) => i.code).join("\n\n");
-        if (!code.trim()) return console.warn("Нет кода");
+        
+        if (!code.trim()) {
+            alert("Нет сгенерированного кода! Добавьте блоки в рабочую область.");
+            return;
+        }
+        
+        setIsCodeModalOpen(true);
+        
         generatorCode(code);
     };
 
@@ -226,14 +236,16 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                 });
             }
 
-            const result = {
-                ...block,
-                nestedBlocks: Object.keys(nestedBlocks).length > 0 ? nestedBlocks : undefined
+            const result: any = {
+                id: block.id,
+                type: block.block?.block_name || block.block?.menu_name,
+                x: block.x,
+                y: block.y,
+                color: block.color,
+                block: block.block,
+                nestedBlocks: Object.keys(nestedBlocks).length > 0 ? nestedBlocks : {},
+                fieldValues: block.fieldValues || {},
             };
-            
-            if (block.fieldValues) {
-                console.log('Collecting nested block with fieldValues:', block.id, block.fieldValues);
-            }
             
             return result;
         });
@@ -282,7 +294,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                     fieldValues: blockFieldValues[block.id] || {},
                 };
                 
-                console.log('Saving block:', block.id, 'fieldValues:', blockData.fieldValues);
                 return blockData;
             });
 
@@ -353,14 +364,14 @@ export default function Workspace({categories, blocks, projectId}: Props) {
 
                         if (blockData.nestedBlocks && typeof blockData.nestedBlocks === 'object') {
                             restoredNestedBlocks[blockId] = blockData.nestedBlocks;
-                            // Также извлекаем fieldValues из вложенных блоков
+                            // fieldValues вложенных блоков уже должны быть в структуре nestedBlocks
+                            // Проверяем и логируем для отладки
                             Object.keys(blockData.nestedBlocks).forEach(fieldName => {
                                 const nestedBlocksArray = blockData.nestedBlocks[fieldName];
                                 if (Array.isArray(nestedBlocksArray)) {
                                     nestedBlocksArray.forEach((nestedBlock: any) => {
                                         if (nestedBlock.fieldValues && nestedBlock.id) {
-                                            // Сохраняем fieldValues вложенных блоков в их структуре
-                                            // Они уже должны быть в nestedBlock.fieldValues
+                                            console.log('Loading nested block fieldValues:', nestedBlock.id, nestedBlock.fieldValues);
                                         }
                                     });
                                 }
@@ -471,7 +482,7 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                 clearTimeout(autoSaveTimerRef.current);
             }
         };
-    }, [workspaceBlocks, nestedBlocks]);
+    }, [workspaceBlocks, nestedBlocks, blockFieldValues]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -498,12 +509,10 @@ export default function Workspace({categories, blocks, projectId}: Props) {
     const handleFieldValuesChange = (blockId: string, fieldValues: Record<string, string | number | undefined>) => {
         hasUserInteractedRef.current = true;
         setBlockFieldValues((prev) => {
-            const updated = {
+            return {
                 ...prev,
                 [blockId]: fieldValues,
             };
-            console.log('FieldValues changed for block:', blockId, 'new values:', fieldValues, 'all:', updated);
-            return updated;
         });
     };
 
@@ -599,6 +608,14 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                     ▶
                 </button>
             </div>
+            <Modal
+                isOpen={isCodeModalOpen}
+                onClose={() => setIsCodeModalOpen(false)}
+                title="Прошивка устройства"
+                showCloseButton={true}
+            >
+                <FlasherPanel />
+            </Modal>
         </main>
     );
 }
