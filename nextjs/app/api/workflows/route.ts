@@ -7,12 +7,43 @@ export async function GET(req: Request) {
         const user = await authenticateRequest(req);
         if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
+        const url = new URL(req.url);
+        const page = parseInt(url.searchParams.get("page") || "1");
+        const limit = parseInt(url.searchParams.get("limit") || "15");
+        const skip = (page - 1) * limit;
+
+        const total = await prisma.workflow.count({
+            where: {userId: user.id },
+        })
+
         const workflows = await prisma.workflow.findMany({
             where: { userId: user.id },
             orderBy: { updatedAt: "desc" },
+            skip,
+            take: limit,
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                liked: true,
+                createdAt: true,
+                updatedAt: true,
+            }
         });
 
-        return Response.json(workflows);
+        const totalPages = Math.ceil(total / limit);
+
+        return Response.json({
+            data: workflows,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+        });
     } catch (error) {
         console.error("Error fetching workflows:", error);
         return Response.json({ error: "Failed to fetch workflows" }, { status: 500 });

@@ -1,7 +1,7 @@
 "use client";
 
 import {getWorkflows, saveWorkflow, deleteWorkflow, WorkflowData} from "@/services/workflow";
-import {FormEvent, useEffect, useState} from "react";
+import {FormEvent, useCallback, useEffect, useState} from "react";
 import { useRouter } from "next/navigation";
 import Style from "./Projects.module.scss";
 import CardProject from "@/components/CardProject";
@@ -12,10 +12,28 @@ import Empty from "@/assets/empty.svg";
 import Image from "next/image";
 import ProjectsLoader from "@/components/ProjectsLoader";
 
+interface PaginationState {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+}
+
 export default function Projects() {
     const [projects, setProjects] = useState<WorkflowData[]>([]);
+    const [pagination, setPagination] = useState<PaginationState>({
+        page: 1,
+        limit: 15,
+        total: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false
+    });
     const [projectName, setProjectName] = useState<string>("");
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [modalState, setModalState] = useState<{
         isOpen: boolean;
         type: "create" | "edit" | "delete" | null;
@@ -27,9 +45,26 @@ export default function Projects() {
     });
     const router = useRouter();
 
-    useEffect(() => {
-        loadProjects();
-    }, []);
+    function getVisiblePages(current: number, total: number, delta: number = 2) {
+        const pages = [];
+        const range = {
+            start: Math.max(2, current - delta),
+            end: Math.min(total - 1, current + delta),
+        };
+
+        for (let i = range.start; i <= range.end; i++) {
+            pages.push(i);
+        }
+
+        if (range.start > 2) pages.unshift("...");
+        if (range.end < total - 1) pages.push("...");
+
+        pages.unshift(1);
+        if (total > 1) pages.push(total);
+
+        return pages;
+    }
+
 
     const openModal = (type: "create" | "edit" | "delete", projectId?: string, projectName?: string) => {
         setModalState({
@@ -46,16 +81,33 @@ export default function Projects() {
         setProjectName("");
     };
 
-    const loadProjects = async () => {
+    const loadProjects = useCallback(async (page: number = 1, append: boolean = false) => {
         try {
-            const response = await getWorkflows();
-            setProjects(response);
+            if (page === 1) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
+            const response = await getWorkflows(page, pagination.limit);
+
+            if (append) {
+                setProjects(prev => [...prev, ...response.data]);
+            } else {
+                setProjects(response.data);
+            }
+
+            setPagination(response.pagination);
         } catch (error) {
             console.log(error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [pagination.limit]);
+
+    useEffect(() => {
+        loadProjects(1);
+    }, [loadProjects]);
 
     const handleLikeChange = (projectId: string, liked: boolean) => {
         setProjects(prevProjects =>
@@ -85,7 +137,9 @@ export default function Projects() {
             if (!newProject || !newProject.id || typeof newProject.id !== "string") {
                 throw new Error("Не удалось получить ID созданного проекта");
             }
-            setProjects(prev => [newProject, ...prev]);
+
+            await loadProjects(1);
+
             closeModal();
             router.push(`/project/${newProject.id}`);
         } catch (error: any) {
@@ -301,6 +355,40 @@ export default function Projects() {
                             </div>
                     }
                 </div>
+                {!loading && pagination.totalPages > 1 && (
+                    <div className={Style.pagination}>
+                        <button
+                            disabled={!pagination.hasPrevPage}
+                            onClick={() => loadProjects(pagination.page - 1)}
+                        >
+                            ‹
+                        </button>
+
+                        {getVisiblePages(pagination.page, pagination.totalPages).map((pageNum, idx) =>
+                            pageNum === "..." ? (
+                                <span key={`ellipsis-${idx}`}>...</span>
+                            ) : (
+                                <button
+                                    key={pageNum}
+                                    className={`${Style.pageButton} ${
+                                        pagination.page === pageNum ? Style.active : ""
+                                    }`}
+                                    onClick={() => loadProjects(pageNum)}
+                                >
+                                    {pageNum}
+                                </button>
+                            )
+                        )}
+
+
+                        <button
+                            disabled={!pagination.hasNextPage}
+                            onClick={() => loadProjects(pagination.page + 1)}
+                        >
+                            ›
+                        </button>
+                    </div>
+                )}
             </main>
 
             <Modal

@@ -132,15 +132,15 @@ export default function FlasherPanel() {
                 </button>}
             </div>
             <label style={{ fontWeight: "bold", textAlign: "start", marginLeft: "5px", marginBottom: "10px", display: "block" }}>
-                        Скомпилированный .bin
-                    </label>
+                Скомпилированный .bin
+            </label>
             <input className={Style.inputFile}
                     type="file"
                     accept=".bin"
                     onChange={(e) => {
                         if (e.target.files?.[0]) setBinFile(e.target.files[0]);
                     }}
-                />
+            />
 
                 <div className={Style.progressSection}>
                     <div className={Style.progressHeader}>
@@ -149,10 +149,7 @@ export default function FlasherPanel() {
                     </div>
                 
                     <div className={Style.customProgress}>
-                        <div 
-                        className={Style.progressFill} 
-                        style={{ width: `${progress}%` }}
-                        />
+                        <div className={Style.progressFill} style={{ width: `${progress}%` }} />
                         <div className={Style.progressStripes} />
                     </div>
                 </div>

@@ -9,6 +9,18 @@ export interface WorkflowData {
     liked: boolean;
 }
 
+export interface PaginationResponse {
+    data: WorkflowData[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+    }
+}
+
 export async function saveWorkflow(workflow: WorkflowData): Promise<WorkflowData> {
     const token = getUserToken();
     if (!token) {
@@ -64,14 +76,17 @@ export async function saveWorkflow(workflow: WorkflowData): Promise<WorkflowData
     }
 }
 
-export async function getWorkflows(): Promise<WorkflowData[]> {
+export async function getWorkflows(
+    page: number = 1,
+    limit: number = 15,
+): Promise<PaginationResponse> {
     const token = getUserToken();
     if (!token) {
         throw new Error('Not authenticated');
     }
 
     try {
-        const response = await fetch('/api/workflows', {
+        const response = await fetch(`/api/workflows?page=${page}&limit=${limit}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
