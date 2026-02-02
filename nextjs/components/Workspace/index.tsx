@@ -386,7 +386,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                     setNestedBlocks(restoredNestedBlocks);
                     setBlockFieldValues(restoredFieldValues);
 
-                    // Восстанавливаем переменные из блоков create_variable
                     const restoreVariablesFromBlocks = (blocks: any[], nestedBlocks: Record<string, Record<string, any[]>>, fieldValues: Record<string, Record<string, string | number | undefined>>) => {
                         blocks.forEach((block: BlockInstance) => {
                             // Проверяем блоки верхнего уровня
@@ -398,7 +397,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                                 }
                             }
 
-                            // Проверяем вложенные блоки
                             const blockNested = nestedBlocks[block.id];
                             if (blockNested) {
                                 Object.values(blockNested).forEach((nestedArray: any) => {
@@ -411,7 +409,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                                                     addVariable(String(varName).trim(), String(varType || "int").trim());
                                                 }
                                             }
-                                            // Рекурсивно проверяем вложенные блоки
                                             if (nestedBlock.nestedBlocks) {
                                                 Object.values(nestedBlock.nestedBlocks).forEach((deepNestedArray: any) => {
                                                     if (Array.isArray(deepNestedArray)) {

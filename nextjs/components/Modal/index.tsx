@@ -11,15 +11,7 @@ interface ModalProps {
     isWorkspace?: boolean;
 }
 
-export default function Modal({
-                                  isOpen,
-                                  onClose,
-                                  title,
-                                  children,
-                                  showCloseButton = true,
-                                  className = "",
-    isWorkspace = false,
-                              }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, showCloseButton = true, className = "", isWorkspace = false }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
 

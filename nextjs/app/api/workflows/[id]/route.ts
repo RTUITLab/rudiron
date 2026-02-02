@@ -1,5 +1,6 @@
 import { prisma } from "@/services/database";
 import { authenticateRequest } from "@/utils/auth";
+import {NextRequest} from "next/server";
 
 export async function GET(
     req: Request,
@@ -117,5 +118,40 @@ export async function DELETE(
     } catch (error) {
         console.error("Error deleting workflow:", error);
         return Response.json({ error: "Failed to delete workflow" }, { status: 500 });
+    }
+}
+
+
+export async function PATCH(req: NextRequest) {
+    try {
+        const user = await authenticateRequest(req);
+        if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+        const body = await req.json();
+        const { name } = body;
+
+        const pathname = req.nextUrl.pathname;
+        const id = pathname.split("/").pop();
+
+        if (!id) return Response.json({ error: "Workflow ID is required" }, { status: 400 });
+
+        if (!name || typeof name !== "string" || name.trim().length === 0) {
+            return Response.json({ error: "Name is required" }, { status: 400 });
+        }
+
+        const workflow = await prisma.workflow.update({
+            where: {
+                id,
+                userId: user.id,
+            },
+            data: {
+                name: name.trim(),
+            }
+        })
+
+        return Response.json(workflow);
+    } catch (error) {
+        console.error("Error update name workflow:", error);
+        return Response.json({ error: "Failed to update workflow name" }, { status: 500 });
     }
 }

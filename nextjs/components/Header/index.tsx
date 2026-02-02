@@ -8,14 +8,15 @@ import categoriesData from "@/data/categories";
 import Blocks from "@/types/blocks";
 import blocksData from "@/data/blocks";
 import Link from "next/link";
+import {getWorkflow} from "@/services/workflow";
+import InputNameProject from "@/components/InputNameProject";
 
 export default function Header() {
     const router = useRouter();
-    const [dataCategories] = useState<Categories>(categoriesData().categories);
-    const [dataBlocks] = useState<Blocks>(blocksData().blocks);
     const { id } = useParams<{ id: string }>();
     const projectId = id;
     const [userInfo, setUserInfo] = useState<any>({});
+    const [nameProject, setNameProject] = useState<string>("");
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -30,6 +31,24 @@ export default function Header() {
         }
     }, []);
 
+    useEffect(() => {
+        let isMounted = true;
+        const fetchWorkflow = async () => {
+            try {
+                const workflow = await getWorkflow(projectId);
+                if (isMounted) {
+                    setNameProject(workflow.name);
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        fetchWorkflow();
+        return () => {
+            isMounted = false;
+        }
+    }, [projectId]);
+
     const handleLogout = () => {
         if (typeof window !== "undefined") {
             localStorage.removeItem("yandex_token");
@@ -43,15 +62,17 @@ export default function Header() {
         router.push("/login");
     };
 
+    const handleNameUpdated = (newName: string) => {
+        setNameProject(newName);
+    }
+
     return (
-        <header className={Style.Header}>
+        <header className={Style.Header} id={"header"}>
             <Link href={"/projects"} style={{ textDecoration: "none", color: "white" }}>
                 <h1>KidsCode</h1>
             </Link>
             <div className={Style.UserInfo}>
-                {userInfo.display_name && (
-                    <span>{userInfo.display_name}</span>
-                )}
+                {nameProject && <InputNameProject id={id} name={nameProject} onNameUpdated={handleNameUpdated} />}
                 <button onClick={handleLogout} className={Style.LogoutButton}>
                     <svg width="44" height="48" viewBox="0 0 44 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path opacity="0.5" d="M14.5248 6C14.4 7.38631 14.4 9.12852 14.4 11.3324V36.6675C14.4 38.8714 14.4 40.6138 14.5248 42H12C6.34316 42 3.51473 42 1.75735 40.2428C-1.43051e-07 38.4852 0 35.6568 0 30V18C0 12.3432 -1.43051e-07 9.51473 1.75735 7.75735C3.51473 6 6.34316 6 12 6H14.5248Z" fill="#D6D6D6"/>

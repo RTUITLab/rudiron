@@ -1,0 +1,27 @@
+.name {
+  display: block;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 200px;
+  max-width: 100%;
+  text-align: right;
+  font-weight: 500;
+  color: rgb(168, 168, 168);
+}
+
+.input {
+  border: none;
+  width: 200px;
+  text-align: right;
+
+  &:enabled {
+    outline: none;
+    border: none;
+    background: none;
+    color: rgb(209, 209, 209);
+    font-weight: 600;
+    padding: 10px;
+  }
+}
