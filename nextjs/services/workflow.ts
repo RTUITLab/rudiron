@@ -6,7 +6,7 @@ export interface WorkflowData {
     description?: string;
     blocks: any[];
     transform?: { x: number; y: number; scale: number };
-    liked: boolean;
+    liked?: boolean;
 }
 
 export interface PaginationResponse {
@@ -188,3 +188,44 @@ export async function getWorkflow(id: string): Promise<WorkflowData> {
     }
 }
 
+export async function updateWorkflowName(id: string, name: string): Promise<void> {
+    const token = getUserToken();
+    if (!token) {
+        throw new Error('Not authenticated');
+    }
+
+    if (!id || typeof id !== 'string') {
+        throw new Error('Workflow ID is required');
+    }
+
+    if (!name || name.trim().length === 0) {
+        throw new Error('Workflow name is required');
+    }
+
+    try {
+        const response = await fetch(`/api/workflows/${id}`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ name: name.trim() }),
+        })
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = 'Failed to fetch workflow';
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.error || errorMessage;
+            } catch {
+                errorMessage = errorText || errorMessage;
+            }
+            throw new Error(`${errorMessage} (Status: ${response.status})`);
+        }
+    } catch (error: any) {
+        if (error.message.includes('Failed to fetch')) {
+            throw new Error('Сервер не доступен. Проверьте подключение к интернету.');
+        }
+        throw error;
+    }
+}

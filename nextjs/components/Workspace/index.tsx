@@ -393,7 +393,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                                 }
                             }
 
-                            // Проверяем вложенные блоки
                             const blockNested = nestedBlocks[block.id];
                             if (blockNested) {
                                 Object.values(blockNested).forEach((nestedArray: any) => {
@@ -406,7 +405,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                                                     addVariable(String(varName).trim(), String(varType || "int").trim());
                                                 }
                                             }
-                                            // Рекурсивно проверяем вложенные блоки
                                             if (nestedBlock.nestedBlocks) {
                                                 Object.values(nestedBlock.nestedBlocks).forEach((deepNestedArray: any) => {
                                                     if (Array.isArray(deepNestedArray)) {

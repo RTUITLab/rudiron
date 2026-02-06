@@ -19,7 +19,7 @@ export default function BlockAside({color, block, refCanDrop, workSpacePermissio
     };
 
     return (
-        <div 
+        <div id={block.block_name === "Присвоить значение" ? "set_variable" : "category" }
             draggable={workSpacePermission ? true : block.workspace} 
             style={{
                 opacity: workSpacePermission ? "1" : block.workspace ? "1" : "0.5", 
