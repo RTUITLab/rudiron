@@ -54,8 +54,6 @@ export default function Modal({
     };
 
     const preventDrag = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
     };
 
     if (!isOpen) return null;
@@ -63,7 +61,7 @@ export default function Modal({
     return (
         <div
             ref={wrapperRef}
-            className={`${styles.modal__wrapper} ${className}`}
+            className={`${styles.modal__wrapper}`}
             onClick={handleWrapperClick}
             {...(isWorkspace ? {
                 onMouseDown: preventDrag,
@@ -73,10 +71,11 @@ export default function Modal({
         >
             <div
                 ref={modalRef}
-                className={styles.modal}
+                className={`${styles.modal}`}
                 tabIndex={-1}
                 role="dialog"
                 aria-labelledby="modal-title"
+                style={isWorkspace ? {width: "75%"} : {}}
             >
                 <div className={styles.modal__header}>
                     <h2 id="modal-title" className={styles.modal__title}>

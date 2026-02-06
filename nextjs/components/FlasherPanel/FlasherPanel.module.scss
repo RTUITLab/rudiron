@@ -1,31 +1,7 @@
-.modal__wrapper {
-
-}
-
-.modal {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+.panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.01);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: all 0.1s ease;
-  cursor: pointer;
-  z-index: 10000;
-
-  &:hover {
-    backdrop-filter: blur(15px);
-  }
+  gap: 1rem;
 }
 
 .textarea {
@@ -73,7 +49,7 @@
 .button {
   padding: 16px 8px;
   color: #fff;
-  font-size: 12px;
+  font-size: 16px;
   background-color: #41434d;
   border-radius: 15px;
   cursor: pointer;
@@ -91,6 +67,7 @@
 
   &:disabled {
     background-color: #41434d;
+    color: #A7A7A7;
     cursor: not-allowed;
   }
 }
@@ -146,6 +123,8 @@
 
 .progressSection {
   margin-top: 20px;
+  height: 60px;
+  max-height: 100px;
 }
 
 .progressHeader {
@@ -155,7 +134,7 @@
   margin-bottom: 8px;
   
   .progressLabel {
-    font-size: 12px;
+    font-size: 14px;
     color: #A7A7A7;
     font-weight: bold;
   }
@@ -166,32 +145,11 @@
     border-radius: 6px;
     color: #fff;
     font-family: monospace;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: bold;
   }
 }
 
-.progressSection {
-  margin-top: 20px;
-}
-
-.progressHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  
-  .progressLabel {
-    font-size: 14px;
-    color: #A7A7A7;
-    font-weight: 500;
-  }
-  
-  .progressValue {
-    font-size: 14px;
-    font-weight: 600;
-  }
-}
 
 .customProgress {
   width: 100%;
@@ -203,12 +161,11 @@
   position: relative;
   
   .progressFill {
-    width: 0%;
+    width: 0;
     height: 100%;
     background: #34c759;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    
   }
 }
 
@@ -222,4 +179,11 @@
   .progressFill {
     background: #ff3b30;
   }
+}
+
+
+.controls {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2rem;
 }

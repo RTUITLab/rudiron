@@ -36,8 +36,7 @@ interface BlockInstance {
 
 export default function Workspace({categories, blocks, projectId}: Props) {
     const [transform, setTransform] = useState({x: 0, y: 0, scale: 1});
-    
-    // Обновляем ref при изменении transform
+
     useEffect(() => {
         transformRef.current = transform;
     }, [transform]);
@@ -104,8 +103,6 @@ export default function Workspace({categories, blocks, projectId}: Props) {
             window.removeEventListener("resize", resize);
         };
     }, [transform, isLoading]);
-
-
 
     const onMouseDown = (e: React.MouseEvent) => {
         if (e.button !== 0) return;
@@ -386,10 +383,8 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                     setNestedBlocks(restoredNestedBlocks);
                     setBlockFieldValues(restoredFieldValues);
 
-                    // Восстанавливаем переменные из блоков create_variable
                     const restoreVariablesFromBlocks = (blocks: any[], nestedBlocks: Record<string, Record<string, any[]>>, fieldValues: Record<string, Record<string, string | number | undefined>>) => {
                         blocks.forEach((block: BlockInstance) => {
-                            // Проверяем блоки верхнего уровня
                             if (block.block.block_name === "create_variable") {
                                 const varName = fieldValues[block.id]?.["var-name"];
                                 const varType = fieldValues[block.id]?.["var-type"];

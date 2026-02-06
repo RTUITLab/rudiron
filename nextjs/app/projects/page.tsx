@@ -102,6 +102,7 @@ export default function Projects() {
             console.log(error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }, [pagination.limit]);
 
@@ -142,7 +143,7 @@ export default function Projects() {
 
             closeModal();
             router.push(`/project/${newProject.id}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка создания проекта:", error);
         }
     };
@@ -169,7 +170,7 @@ export default function Projects() {
                 )
             );
             closeModal();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка редактирования проекта:", error);
         }
     };
@@ -184,7 +185,7 @@ export default function Projects() {
                 prevProjects.filter(project => project.id !== modalState.projectId)
             );
             closeModal();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка удаления проекта:", error);
         }
     };
@@ -373,7 +374,7 @@ export default function Projects() {
                                     className={`${Style.pageButton} ${
                                         pagination.page === pageNum ? Style.active : ""
                                     }`}
-                                    onClick={() => loadProjects(pageNum)}
+                                    onClick={() => loadProjects(Number(pageNum))}
                                 >
                                     {pageNum}
                                 </button>
