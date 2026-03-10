@@ -5,7 +5,7 @@ export default function categoriesData(): CategoriesData {
         categories: [
             {
                 name: "Структура",
-                color: "#00E676"
+                color: "#00f915"
             },
             {
                 name: "Переменные",
@@ -17,35 +17,27 @@ export default function categoriesData(): CategoriesData {
             },
             {
                 name: "Условия",
-                color: "#FF9100"
+                color: "#FF6F00"
             },
             {
                 name: "Циклы",
-                color: "#2979FF"
+                color: "#0066ff"
             },
             {
                 name: "Ввод/Вывод",
-                color: "#FFD600"
+                color: "#FFD800"
             },
             {
                 name: "Время",
-                color: "#FF6D00"
+                color: "#ff8000"
             },
             {
-                name: "UART",
-                color: "#00E5FF"
+                name: "Serial",
+                color: "#00ffd9"
             },
             {
                 name: "Математика",
-                color: "#C6FF00"
-            },
-            {
-                name: "Сеть",
-                color: "#9C27B0"
-            },
-            {
-                name: "Отладка",
-                color: "#8BC34A"
+                color: "#c1e43a"
             }
         ]
     };

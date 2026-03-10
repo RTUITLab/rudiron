@@ -1,73 +1,60 @@
 import {BlocksData} from "@/types/blocks";
 
+
 export default function blocksData(): BlocksData {
     return {
         blocks: [
             {
-                "block_name": "micropython_script",
-                "menu_name": "Скрипт MicroPython",
+                "block_name": "arduino_sketch",
+                "menu_name": "Скетч Arduino",
                 "category": "Структура",
                 "fields": [
                     {
-                        "name": "imports-body",
-                        "placeholder": "Импорты (import) — перетащите блоки сюда",
+                        "name": "includes-body",
+                        "placeholder": "Подключения (#include) — перетащите блоки сюда",
                         "type": 2,
                         "hardcoded": false,
                         "values": []
                     },
                     {
                         "name": "globals-body",
-                        "placeholder": "Глобальные переменные — перетащите блоки сюда",
+                        "placeholder": "Глобальные переменные/константы — перетащите блоки сюда",
                         "type": 2,
                         "hardcoded": false,
                         "values": []
                     },
                     {
-                        "name": "functions-body",
-                        "placeholder": "Функции — перетащите блоки сюда",
+                        "name": "setup-body",
+                        "placeholder": "setup() — выполняется один раз",
                         "type": 2,
                         "hardcoded": false,
                         "values": []
                     },
                     {
-                        "name": "main-body",
-                        "placeholder": "Основной код — выполняется при запуске",
+                        "name": "loop-body",
+                        "placeholder": "loop() — выполняется постоянно",
                         "type": 2,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%imports-body%%n%%globals-body%%n%%functions-body%%n%%n%# Основной код%n%if __name__ == '__main__':%n%%tab%%main-body%%n%%-tab%",
+                "default_code": "%includes-body%%n%%globals-body%%n%void setup(){%n%%tab%%setup-body%%n%%-tab%}%n%%n%void loop(){%n%%tab%%loop-body%%n%%-tab%}",
                 "workspace": true,
             },
             {
-                "block_name": "import_module",
-                "menu_name": "import модуль",
+                "block_name": "include_library",
+                "menu_name": "#include библиотеку",
                 "category": "Структура",
                 "fields": [
                     {
-                        "name": "module-name",
-                        "placeholder": "Например: machine, time, network",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "import-type",
-                        "placeholder": "Тип импорта",
-                        "type": 1,
-                        "hardcoded": true,
-                        "values": ["import", "from import"]
-                    },
-                    {
-                        "name": "import-what",
-                        "placeholder": "Что импортировать (для from)",
+                        "name": "lib-name",
+                        "placeholder": "Например: Servo.h",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%import-type% %module-name%%import-what%",
+                "default_code": "#include <%lib-name%>",
                 "workspace": false,
             },
             {
@@ -83,7 +70,30 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "# %comment-text%",
+                "default_code": "// %comment-text%",
+                "workspace": false,
+            },
+            {
+                "block_name": "define",
+                "menu_name": "#define",
+                "category": "Структура",
+                "fields": [
+                    {
+                        "name": "def-name",
+                        "placeholder": "Имя (например LED_PIN)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "def-value",
+                        "placeholder": "Значение (например 13)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    }
+                ],
+                "default_code": "#define %def-name% %def-value%",
                 "workspace": false,
             },
             {
@@ -92,21 +102,21 @@ export default function blocksData(): BlocksData {
                 "category": "Переменные",
                 "fields": [
                     {
+                        "name": "var-type",
+                        "placeholder": "Выберите тип",
+                        "type": 1,
+                        "hardcoded": true,
+                        "values": ["int", "bool", "char", "float"]
+                    },
+                    {
                         "name": "var-name",
                         "placeholder": "Введите название",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
-                    },
-                    {
-                        "name": "var-value",
-                        "placeholder": "Значение (опционально)",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
                     }
                 ],
-                "default_code": "%var-name% = %var-value%",
+                "default_code": "%var-type% %var-name% = 0;",
                 "workspace": false,
             },
             {
@@ -123,13 +133,13 @@ export default function blocksData(): BlocksData {
                     },
                     {
                         "name": "set-value",
-                        "placeholder": "Значение/выражение",
+                        "placeholder": "Значение/выражение (например 123 или millis())",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%set-var% = %set-value%",
+                "default_code": "%set-var% = %set-value%;",
                 "workspace": false,
             },
             {
@@ -149,10 +159,10 @@ export default function blocksData(): BlocksData {
                         "placeholder": "Операция",
                         "type": 1,
                         "hardcoded": true,
-                        "values": ["+= 1", "-= 1", "*= 2", "/= 2"]
+                        "values": ["++", "--", "+= 1", "-= 1"]
                     },
                 ],
-                "default_code": "%inc-var% %inc-op%",
+                "default_code": "%inc-var% %inc-op%;",
                 "workspace": false,
             },
 
@@ -166,14 +176,14 @@ export default function blocksData(): BlocksData {
                         "placeholder": "Пин",
                         "type": 1,
                         "hardcoded": true,
-                        "values": [0, 1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33]
+                        "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, "A0", "A1", "A2", "A3", "A4", "A5"]
                     },
                     {
                         "name": "if-button",
                         "placeholder": "Сигнал",
                         "type": 1,
                         "hardcoded": true,
-                        "values": ["1", "0"]
+                        "values": ["HIGH", "LOW"]
                     },
                     {
                         "name": "if-body",
@@ -183,9 +193,11 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "if pin%if-pin%.value() == %if-button%:%n%%tab%%if-body%%n%%-tab%",
+                "default_code": "if (digitalRead(%if-pin%) == %if-button%) {%n%%tab%%if-body%%n%%-tab%}",
                 "workspace": false,
-            },
+            }
+
+            ,
             {
                 "block_name": "if_condition",
                 "menu_name": "Если (условие)",
@@ -206,7 +218,7 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "if %if-cond%:%n%%tab%%if-body%%n%%-tab%",
+                "default_code": "if (%if-cond%) {%n%%tab%%if-body%%n%%-tab%}",
                 "workspace": false,
             },
             {
@@ -216,7 +228,7 @@ export default function blocksData(): BlocksData {
                 "fields": [
                     {
                         "name": "if-cond",
-                        "placeholder": "Условие",
+                        "placeholder": "Условие (например Serial.available() > 0)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
@@ -236,7 +248,7 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "if %if-cond%:%n%%tab%%if-body%%n%%-tab%else:%n%%tab%%else-body%%n%%-tab%",
+                "default_code": "if (%if-cond%) {%n%%tab%%if-body%%n%%-tab%} else {%n%%tab%%else-body%%n%%-tab%}",
                 "workspace": false,
             },
 
@@ -253,8 +265,22 @@ export default function blocksData(): BlocksData {
                         "values": []
                     },
                     {
-                        "name": "for-range",
-                        "placeholder": "Диапазон (например range(10))",
+                        "name": "for-from",
+                        "placeholder": "От (например 0)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "for-to",
+                        "placeholder": "До (например 10)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "for-step",
+                        "placeholder": "Шаг (например 1)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
@@ -267,7 +293,7 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "for %for-i% in %for-range%:%n%%tab%%for-body%%n%%-tab%",
+                "default_code": "for (int %for-i% = %for-from%; %for-i% <= %for-to%; %for-i% += %for-step%) {%n%%tab%%for-body%%n%%-tab%}",
                 "workspace": false,
             },
             {
@@ -277,7 +303,7 @@ export default function blocksData(): BlocksData {
                 "fields": [
                     {
                         "name": "while-cond",
-                        "placeholder": "Условие (например True)",
+                        "placeholder": "Условие (например digitalRead(2) == HIGH)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
@@ -290,7 +316,7 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "while %while-cond%:%n%%tab%%while-body%%n%%-tab%",
+                "default_code": "while (%while-cond%) {%n%%tab%%while-body%%n%%-tab%}",
                 "workspace": false,
             },
             {
@@ -298,7 +324,7 @@ export default function blocksData(): BlocksData {
                 "menu_name": "break",
                 "category": "Циклы",
                 "fields": [],
-                "default_code": "break",
+                "default_code": "break;",
                 "workspace": false,
             },
             {
@@ -306,13 +332,13 @@ export default function blocksData(): BlocksData {
                 "menu_name": "continue",
                 "category": "Циклы",
                 "fields": [],
-                "default_code": "continue",
+                "default_code": "continue;",
                 "workspace": false,
             },
 
             {
-                "block_name": "pin_setup",
-                "menu_name": "Настройка пина",
+                "block_name": "pin_mode",
+                "menu_name": "pinMode",
                 "category": "Ввод/Вывод",
                 "fields": [
                     {
@@ -320,68 +346,114 @@ export default function blocksData(): BlocksData {
                         "placeholder": "Пин",
                         "type": 1,
                         "hardcoded": true,
-                        "values": [0, 1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33]
+                        "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, "A0", "A1", "A2", "A3", "A4", "A5"]
                     },
                     {
                         "name": "mode",
                         "placeholder": "Режим",
                         "type": 1,
                         "hardcoded": true,
-                        "values": ["Pin.OUT", "Pin.IN", "Pin.IN, Pin.PULL_UP"]
+                        "values": ["INPUT", "OUTPUT", "INPUT_PULLUP"]
                     }
                 ],
-                "default_code": "pin%pin% = Pin(%pin%, %mode%)",
+                "default_code": "pinMode(%pin%, %mode%);",
                 "workspace": false,
             },
             {
                 "block_name": "digital_write",
-                "menu_name": "Цифровая запись",
+                "menu_name": "digitalWrite",
                 "category": "Ввод/Вывод",
                 "fields": [
                     {
                         "name": "pin",
                         "placeholder": "Пин",
                         "type": 1,
-                        "hardcoded": false,
-                        "values": []
+                        "hardcoded": true,
+                        "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
                     },
                     {
                         "name": "value",
                         "placeholder": "Значение",
                         "type": 1,
                         "hardcoded": true,
-                        "values": ["1", "0"]
+                        "values": ["HIGH", "LOW"]
                     }
                 ],
-                "default_code": "%pin%.value(%value%)",
+                "default_code": "digitalWrite(%pin%, %value%);",
                 "workspace": false,
             },
             {
-                "block_name": "digital_read",
-                "menu_name": "Цифровое чтение",
+                "block_name": "digital_read_into",
+                "menu_name": "Считать digitalRead() в переменную",
                 "category": "Ввод/Вывод",
                 "fields": [
                     {
-                        "name": "pin",
-                        "placeholder": "Пин",
+                        "name": "var",
+                        "placeholder": "Переменная",
                         "type": 1,
                         "hardcoded": false,
                         "values": []
                     },
                     {
-                        "name": "var",
-                        "placeholder": "Переменная для результата",
+                        "name": "pin",
+                        "placeholder": "Пин",
                         "type": 1,
+                        "hardcoded": true,
+                        "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+                    }
+                ],
+                "default_code": "%var% = digitalRead(%pin%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "analog_write",
+                "menu_name": "analogWrite (PWM)",
+                "category": "Ввод/Вывод",
+                "fields": [
+                    {
+                        "name": "pin",
+                        "placeholder": "PWM пин",
+                        "type": 1,
+                        "hardcoded": true,
+                        "values": [3, 5, 6, 9, 10, 11]
+                    },
+                    {
+                        "name": "value",
+                        "placeholder": "Значение 0..255",
+                        "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%var% = %pin%.value()",
+                "default_code": "analogWrite(%pin%, %value%);",
                 "workspace": false,
             },
             {
-                "block_name": "pwm_setup",
-                "menu_name": "Настройка PWM",
+                "block_name": "analog_read_into",
+                "menu_name": "Считать analogRead() в переменную",
+                "category": "Ввод/Вывод",
+                "fields": [
+                    {
+                        "name": "var",
+                        "placeholder": "Переменная",
+                        "type": 1,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "pin",
+                        "placeholder": "Аналоговый пин",
+                        "type": 1,
+                        "hardcoded": true,
+                        "values": ["A0", "A1", "A2", "A3", "A4", "A5"]
+                    }
+                ],
+                "default_code": "%var% = analogRead(%pin%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "tone",
+                "menu_name": "tone (частота)",
                 "category": "Ввод/Вывод",
                 "fields": [
                     {
@@ -389,7 +461,7 @@ export default function blocksData(): BlocksData {
                         "placeholder": "Пин",
                         "type": 1,
                         "hardcoded": true,
-                        "values": [0, 2, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33]
+                        "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
                     },
                     {
                         "name": "freq",
@@ -399,91 +471,59 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "pwm%pin% = PWM(Pin(%pin%), freq=%freq%)",
+                "default_code": "tone(%pin%, %freq%);",
                 "workspace": false,
             },
             {
-                "block_name": "pwm_write",
-                "menu_name": "PWM запись",
-                "category": "Ввод/Вывод",
-                "fields": [
-                    {
-                        "name": "pwm",
-                        "placeholder": "PWM объект",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "duty",
-                        "placeholder": "Коэффициент заполнения 0-1023",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "%pwm%.duty(%duty%)",
-                "workspace": false,
-            },
-            {
-                "block_name": "adc_setup",
-                "menu_name": "Настройка ADC",
+                "block_name": "tone_duration",
+                "menu_name": "tone (с длительностью)",
                 "category": "Ввод/Вывод",
                 "fields": [
                     {
                         "name": "pin",
-                        "placeholder": "Аналоговый пин",
+                        "placeholder": "Пин",
                         "type": 1,
                         "hardcoded": true,
-                        "values": [32, 33, 34, 35, 36, 39]
-                    }
-                ],
-                "default_code": "adc%pin% = ADC(Pin(%pin%))%n%adc%pin%.atten(ADC.ATTN_11DB)",
-                "workspace": false,
-            },
-            {
-                "block_name": "adc_read",
-                "menu_name": "Аналоговое чтение",
-                "category": "Ввод/Вывод",
-                "fields": [
+                        "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+                    },
                     {
-                        "name": "adc",
-                        "placeholder": "ADC объект",
-                        "type": 1,
+                        "name": "freq",
+                        "placeholder": "Частота (Гц)",
+                        "type": 3,
                         "hardcoded": false,
                         "values": []
                     },
                     {
-                        "name": "var",
-                        "placeholder": "Переменная для результата",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "%var% = %adc%.read()",
-                "workspace": false,
-            },
-
-            {
-                "block_name": "sleep",
-                "menu_name": "sleep",
-                "category": "Время",
-                "fields": [
-                    {
-                        "name": "seconds",
-                        "placeholder": "Секунды",
+                        "name": "dur",
+                        "placeholder": "Длительность (мс)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "time.sleep(%seconds%)",
+                "default_code": "tone(%pin%, %freq%, %dur%);",
                 "workspace": false,
             },
             {
-                "block_name": "sleep_ms",
-                "menu_name": "sleep_ms",
+                "block_name": "no_tone",
+                "menu_name": "noTone",
+                "category": "Ввод/Вывод",
+                "fields": [
+                    {
+                        "name": "pin",
+                        "placeholder": "Пин",
+                        "type": 1,
+                        "hardcoded": true,
+                        "values": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+                    }
+                ],
+                "default_code": "noTone(%pin%);",
+                "workspace": false,
+            },
+
+            {
+                "block_name": "delay",
+                "menu_name": "delay",
                 "category": "Время",
                 "fields": [
                     {
@@ -494,12 +534,28 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "time.sleep_ms(%ms%)",
+                "default_code": "delay(%ms%);",
                 "workspace": false,
             },
             {
-                "block_name": "ticks_ms",
-                "menu_name": "ticks_ms()",
+                "block_name": "delay_us",
+                "menu_name": "delayMicroseconds",
+                "category": "Время",
+                "fields": [
+                    {
+                        "name": "us",
+                        "placeholder": "Микросекунды",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    }
+                ],
+                "default_code": "delayMicroseconds(%us%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "set_millis",
+                "menu_name": "Присвоить millis()",
                 "category": "Время",
                 "fields": [
                     {
@@ -510,128 +566,102 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "%var% = time.ticks_ms()",
+                "default_code": "%var% = millis();",
                 "workspace": false,
             },
             {
-                "block_name": "ticks_diff",
-                "menu_name": "Разница времени",
+                "block_name": "set_micros",
+                "menu_name": "Присвоить micros()",
                 "category": "Время",
                 "fields": [
                     {
                         "name": "var",
-                        "placeholder": "Переменная для результата",
+                        "placeholder": "Переменная",
                         "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "end",
-                        "placeholder": "Конечное время",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "start",
-                        "placeholder": "Начальное время",
-                        "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%var% = time.ticks_diff(%end%, %start%)",
+                "default_code": "%var% = micros();",
                 "workspace": false,
             },
 
             {
-                "block_name": "uart_setup",
-                "menu_name": "UART init",
-                "category": "UART",
+                "block_name": "serial_begin",
+                "menu_name": "Serial.begin",
+                "category": "Serial",
                 "fields": [
                     {
                         "name": "baud",
                         "placeholder": "Скорость (baud)",
                         "type": 1,
                         "hardcoded": true,
-                        "values": [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
-                    },
+                        "values": [300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
+                    }
+                ],
+                "default_code": "Serial.begin(%baud%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "serial_print",
+                "menu_name": "Serial.print/println",
+                "category": "Serial",
+                "fields": [
                     {
-                        "name": "uart-num",
-                        "placeholder": "UART номер",
+                        "name": "method",
+                        "placeholder": "Метод",
                         "type": 1,
                         "hardcoded": true,
-                        "values": [1, 2]
-                    }
-                ],
-                "default_code": "uart%uart-num% = UART(%uart-num%, baudrate=%baud%)",
-                "workspace": false,
-            },
-            {
-                "block_name": "uart_write",
-                "menu_name": "UART запись",
-                "category": "UART",
-                "fields": [
-                    {
-                        "name": "uart",
-                        "placeholder": "UART объект",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
+                        "values": ["print", "println"]
                     },
                     {
-                        "name": "data",
-                        "placeholder": "Данные для отправки",
+                        "name": "value",
+                        "placeholder": "Значение (например \"Привет\" или x)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%uart%.write(%data%)",
+                "default_code": "Serial.%method%(%value%);",
                 "workspace": false,
             },
             {
-                "block_name": "uart_read",
-                "menu_name": "UART чтение",
-                "category": "UART",
+                "block_name": "serial_write",
+                "menu_name": "Serial.write",
+                "category": "Serial",
                 "fields": [
                     {
-                        "name": "uart",
-                        "placeholder": "UART объект",
-                        "type": 1,
+                        "name": "value",
+                        "placeholder": "Байт/массив/строка",
+                        "type": 3,
                         "hardcoded": false,
                         "values": []
-                    },
+                    }
+                ],
+                "default_code": "Serial.write(%value%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "serial_read_into",
+                "menu_name": "Прочитать Serial.read() в переменную",
+                "category": "Serial",
+                "fields": [
                     {
                         "name": "var",
-                        "placeholder": "Переменная для результата",
+                        "placeholder": "Переменная",
                         "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "bytes",
-                        "placeholder": "Количество байт",
-                        "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%var% = %uart%.read(%bytes%)",
+                "default_code": "%var% = Serial.read();",
                 "workspace": false,
             },
             {
-                "block_name": "uart_any",
-                "menu_name": "Если есть данные UART",
-                "category": "UART",
+                "block_name": "if_serial_available",
+                "menu_name": "Если Serial.available() > 0",
+                "category": "Serial",
                 "fields": [
-                    {
-                        "name": "uart",
-                        "placeholder": "UART объект",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    },
                     {
                         "name": "if-body",
                         "placeholder": "Тогда",
@@ -640,25 +670,145 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "if %uart%.any():%n%%tab%%if-body%%n%%-tab%",
+                "default_code": "if (Serial.available() > 0) {%n%%tab%%if-body%%n%%-tab%}",
+                "workspace": false,
+            },
+            {
+                "block_name": "serial_flush",
+                "menu_name": "Serial.flush",
+                "category": "Serial",
+                "fields": [],
+                "default_code": "Serial.flush();",
                 "workspace": false,
             },
 
             {
-                "block_name": "function_def",
-                "menu_name": "Функция def",
-                "category": "Функции",
+                "block_name": "math_map",
+                "menu_name": "map() в переменную",
+                "category": "Математика",
                 "fields": [
                     {
-                        "name": "func-name",
-                        "placeholder": "Имя функции",
+                        "name": "out",
+                        "placeholder": "Куда сохранить",
+                        "type": 1,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "x",
+                        "placeholder": "x",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     },
                     {
-                        "name": "func-args",
-                        "placeholder": "Аргументы (например a, b)",
+                        "name": "in_min",
+                        "placeholder": "in_min",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "in_max",
+                        "placeholder": "in_max",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "out_min",
+                        "placeholder": "out_min",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "out_max",
+                        "placeholder": "out_max",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    }
+                ],
+                "default_code": "%out% = map(%x%, %in_min%, %in_max%, %out_min%, %out_max%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "math_constrain",
+                "menu_name": "constrain() в переменную",
+                "category": "Математика",
+                "fields": [
+                    {
+                        "name": "out",
+                        "placeholder": "Куда сохранить",
+                        "type": 1,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "x",
+                        "placeholder": "x",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "a",
+                        "placeholder": "Минимум",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "b",
+                        "placeholder": "Максимум",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    }
+                ],
+                "default_code": "%out% = constrain(%x%, %a%, %b%);",
+                "workspace": false,
+            },
+            {
+                "block_name": "math_random",
+                "menu_name": "random() в переменную",
+                "category": "Математика",
+                "fields": [
+                    {
+                        "name": "out",
+                        "placeholder": "Куда сохранить",
+                        "type": 1,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "min",
+                        "placeholder": "min",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "max",
+                        "placeholder": "max",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    }
+                ],
+                "default_code": "%out% = random(%min%, %max%);",
+                "workspace": false,
+            },
+
+            {
+                "block_name": "function_void",
+                "menu_name": "Функция void",
+                "category": "Функции",
+                "fields": [
+                    {
+                        "name": "func-name",
+                        "placeholder": "Имя функции",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
@@ -671,30 +821,21 @@ export default function blocksData(): BlocksData {
                         "values": []
                     }
                 ],
-                "default_code": "def %func-name%(%func-args%):%n%%tab%%func-body%%n%%-tab%",
+                "default_code": "void %func-name%() {%n%%tab%%func-body%%n%%-tab%}",
                 "workspace": false,
             },
             {
-                "block_name": "function_return",
-                "menu_name": "return",
+                "block_name": "function_typed",
+                "menu_name": "Функция (с типом)",
                 "category": "Функции",
                 "fields": [
                     {
-                        "name": "ret-value",
-                        "placeholder": "Возвращаемое значение (опционально)",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "return %ret-value%",
-                "workspace": false,
-            },
-            {
-                "block_name": "function_call",
-                "menu_name": "Вызов функции",
-                "category": "Функции",
-                "fields": [
+                        "name": "func-type",
+                        "placeholder": "Тип",
+                        "type": 1,
+                        "hardcoded": true,
+                        "values": ["int", "long", "float", "double", "bool", "char", "String", "void"]
+                    },
                     {
                         "name": "func-name",
                         "placeholder": "Имя функции",
@@ -703,191 +844,38 @@ export default function blocksData(): BlocksData {
                         "values": []
                     },
                     {
-                        "name": "func-args",
-                        "placeholder": "Аргументы",
-                        "type": 3,
+                        "name": "func-body",
+                        "placeholder": "Тело функции",
+                        "type": 2,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%func-name%(%func-args%)",
+                "default_code": "%func-type% %func-name%() {%n%%tab%%func-body%%n%%-tab%}",
                 "workspace": false,
             },
-
             {
-                "block_name": "wifi_connect",
-                "menu_name": "Подключение к WiFi",
-                "category": "Сеть",
+                "block_name": "return_value",
+                "menu_name": "return (значение)",
+                "category": "Функции",
                 "fields": [
                     {
-                        "name": "ssid",
-                        "placeholder": "SSID сети",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "password",
-                        "placeholder": "Пароль",
+                        "name": "ret-value",
+                        "placeholder": "Значение (например x)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "import network%n%wifi = network.WLAN(network.STA_IF)%n%wifi.active(True)%n%wifi.connect('%ssid%', '%password%')%n%while not wifi.isconnected():%n%%tab%time.sleep(1)%n%%-tab%",
+                "default_code": "return %ret-value%;",
                 "workspace": false,
             },
             {
-                "block_name": "wifi_status",
-                "menu_name": "Статус WiFi",
-                "category": "Сеть",
-                "fields": [
-                    {
-                        "name": "var",
-                        "placeholder": "Переменная для результата",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "%var% = wifi.isconnected()",
-                "workspace": false,
-            },
-
-            {
-                "block_name": "math_operation",
-                "menu_name": "Математическая операция",
-                "category": "Математика",
-                "fields": [
-                    {
-                        "name": "var",
-                        "placeholder": "Результат",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "expression",
-                        "placeholder": "Выражение (например a + b)",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "%var% = %expression%",
-                "workspace": false,
-            },
-            {
-                "block_name": "random_int",
-                "menu_name": "Случайное число",
-                "category": "Математика",
-                "fields": [
-                    {
-                        "name": "var",
-                        "placeholder": "Переменная для результата",
-                        "type": 1,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "min",
-                        "placeholder": "Минимум",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "max",
-                        "placeholder": "Максимум",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "import random%n%%var% = random.randint(%min%, %max%)",
-                "workspace": false,
-            },
-            {
-                "block_name": "import_machine_time",
-                "menu_name": "Импорт machine/time",
-                "category": "Структура",
+                "block_name": "return_void",
+                "menu_name": "return",
+                "category": "Функции",
                 "fields": [],
-                "default_code": "from machine import Pin, PWM, ADC, UART%n%import time",
-                "workspace": false,
-            },
-
-            {
-                "block_name": "print_text",
-                "menu_name": "Вывод print()",
-                "category": "Отладка",
-                "fields": [
-                    {
-                        "name": "print-value",
-                        "placeholder": "Что вывести (например: 'Hello' или переменную)",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "print(%print-value%)",
-                "workspace": false,
-            },
-
-            {
-                "block_name": "while_true",
-                "menu_name": "Бесконечный цикл while True",
-                "category": "Циклы",
-                "fields": [
-                    {
-                        "name": "body",
-                        "placeholder": "Тело цикла",
-                        "type": 2,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "while True:%n%%tab%%body%%n%%-tab%",
-                "workspace": false,
-            },
-
-            {
-                "block_name": "try_except",
-                "menu_name": "try / except",
-                "category": "Структура",
-                "fields": [
-                    {
-                        "name": "try-body",
-                        "placeholder": "Попробовать (try)",
-                        "type": 2,
-                        "hardcoded": false,
-                        "values": []
-                    },
-                    {
-                        "name": "except-body",
-                        "placeholder": "Если ошибка (except)",
-                        "type": 2,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "try:%n%%tab%%try-body%%n%%-tab%except Exception as e:%n%%tab%%except-body%%n%%-tab%",
-                "workspace": false,
-            },
-
-            {
-                "block_name": "delay_ms",
-                "menu_name": "Задержка (мс)",
-                "category": "Время",
-                "fields": [
-                    {
-                        "name": "delay",
-                        "placeholder": "Миллисекунды",
-                        "type": 3,
-                        "hardcoded": false,
-                        "values": []
-                    }
-                ],
-                "default_code": "time.sleep_ms(%delay%)",
+                "default_code": "return;",
                 "workspace": false,
             }
         ]

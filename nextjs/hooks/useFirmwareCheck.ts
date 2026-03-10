@@ -16,17 +16,14 @@ export const useFirmwareCheck = (port: SerialPort | null) => {
             const writer = port.writable.getWriter();
             const encoder = new TextEncoder();
 
-            // Отправляем пустую строку, чтобы REPL дал приглашение ">>>"
             await writer.write(encoder.encode("\r\n"));
             await new Promise(r => setTimeout(r, 200));
 
-            // Запрашиваем версию прошивки — MicroPython должен ответить
             await writer.write(encoder.encode("import sys\r\nprint(sys.version)\r\n"));
             await new Promise(r => setTimeout(r, 1000));
 
             writer.releaseLock();
 
-            // 💡 Не читаем здесь ничего — readLoop сам выведет ответ в терминал
             return {
                 ok: true,
                 message: "Команда отправлена. Проверяйте терминал для ответа MicroPython.",

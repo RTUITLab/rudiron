@@ -7,6 +7,7 @@ import {SerialPort} from "web-serial-polyfill";
 import {useUploaderFirmware} from "@/hooks/useUploaderFirmware";
 import {useEraseFlash} from "@/hooks/useEraseFlash";
 import {useFirmwareCheck} from "@/hooks/useFirmwareCheck";
+import SimpleCode from "@/components/SimpleCode";
 
 export default function FlasherPanel() {
     const [formattedCode, setFormattedCode] = useState("");
@@ -81,19 +82,11 @@ export default function FlasherPanel() {
                 return;
             }
 
-            setFormattedCode(`
-from machine import Pin
-import time
-led = Pin(2, Pin.OUT)
-
-for i in range(5):
-    led.value(1)
-    print('LED ON')
-    time.sleep(0.5)
-    led.value(0)
-    print('LED OFF')
-    time.sleep(0.5)
-            `);
+            const pythonCode = generateCodeFromBlocks();
+            const formatted = generatorCode(pythonCode);
+            console.log(formatted);
+            setFormattedCode(formatted);
+            console.log(formattedCode);
             const nav = navigator as any;
             const selectedPort: SerialPort = await nav.serial.requestPort();
             if (!selectedPort) return;
@@ -296,16 +289,16 @@ for i in range(5):
 
 
 
-    // const generateCodeFromBlocks = () => {
-    //     if (!codeState || codeState.length === 0) return "";
-    //
-    //     const childIds = new Set<number>();
-    //     codeState.forEach((item: CodeType) =>
-    //         item.children.forEach((child: CodeType) => childIds.add(child.id))
-    //     );
-    //     const roots = codeState.filter((i: CodeType) => !childIds.has(i.id));
-    //     return roots.map((i: CodeType) => i.code).join("\n\n") || "";
-    // };
+    const generateCodeFromBlocks = () => {
+        if (!codeState || codeState.length === 0) return "";
+        const childIds = new Set<number>();
+        codeState.forEach((item: CodeType) =>
+            item.children.forEach((child: CodeType) => childIds.add(child.id))
+        );
+        const roots = codeState.filter((i: CodeType) => !childIds.has(i.id));
+        const rawCode = roots.map((i: CodeType) => i.code).join("%n%%n%");
+        return generatorCode(rawCode);
+    };
 
     useEffect(() => {
         if (!port) return;
@@ -404,13 +397,7 @@ for i in range(5):
                     */}
                 </div>
 
-                <textarea
-                    value={formattedCode}
-                    readOnly
-                    rows={10}
-                    className={Style.textarea}
-                    placeholder="Отформатированный код для .ino"
-                />
+                <SimpleCode code={formattedCode} language={"python"} />
             </div>
 
             <span style={{ fontSize: "16px", color: "#A7A7A7", fontWeight: "500", marginBottom: "10px", textAlign: "start", display: "block" }}>

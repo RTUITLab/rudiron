@@ -12,6 +12,8 @@
 
 
 .modal {
+  max-height: 75%;
+  overflow-y: scroll;
   min-width: 450px;
   cursor: default;
   display: flex;
@@ -36,6 +38,25 @@
   &:hover {
     background: rgba(53, 54, 59, 0.97);
     backdrop-filter: blur(15px);
+  }
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #2d2e37;
+    border: 1px #313131 solid;
+    border-radius: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #696969;
+    border-radius: 5px;
+    border: 1px #313131 solid;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #5b5b5b;
   }
 }
 
