@@ -79,6 +79,26 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
 
     const isCreateVariableBlock = useMemo(() => block.block_name === "create_variable", [block.block_name]);
 
+    const DEVICE_SETUP: Record<string, { idField: string; prefix: string; varType: string }> = {
+        pin_setup:  { idField: "pin",      prefix: "pin",  varType: "Pin"  },
+        pwm_setup:  { idField: "pin",      prefix: "pwm",  varType: "PWM"  },
+        adc_setup:  { idField: "pin",      prefix: "adc",  varType: "ADC"  },
+        uart_setup: { idField: "uart-num", prefix: "uart", varType: "UART" },
+    };
+    const deviceSetupConfig = DEVICE_SETUP[block.block_name] ?? null;
+    const previousDeviceVarRef = useRef<string>("");
+
+    useEffect(() => {
+        if (!deviceSetupConfig) return;
+        const id = String(fieldValues[deviceSetupConfig.idField] ?? "").trim();
+        const newVarName = id && id !== "Выбор" ? deviceSetupConfig.prefix + id : "";
+        const prevVarName = previousDeviceVarRef.current;
+        if (prevVarName && prevVarName !== newVarName) removeVariable(prevVarName);
+        if (newVarName) addVariable(newVarName, deviceSetupConfig.varType);
+        previousDeviceVarRef.current = newVarName;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fieldValues, block.block_name]);
+
     useEffect(() => {
         if (!isCreateVariableBlock) return;
 
@@ -184,10 +204,12 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
     const handleDeleteBlock = () => {
         if (isCreateVariableBlock) {
             const varName = String(fieldValues["var-name"] ?? "").trim();
-            // Удаляем переменную только если имя не пустое и не равно "Выбор"
-            if (varName && varName !== "Выбор") {
-                removeVariable(varName);
-            }
+            if (varName && varName !== "Выбор") removeVariable(varName);
+        }
+        if (deviceSetupConfig) {
+            const id = String(fieldValues[deviceSetupConfig.idField] ?? "").trim();
+            const varName = id && id !== "Выбор" ? deviceSetupConfig.prefix + id : "";
+            if (varName) removeVariable(varName);
         }
         deleteBlock();
         onChange(null);
@@ -218,20 +240,6 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
             <div style={styleColor}>
                 {block.fields.map((elem, index) => {
                     if (elem.type === 1) {
-                        // Добавьте эту проверку
-                        if (elem.name === "pwm") {
-                            console.log("PWM field:", {
-                                hardcoded: elem.hardcoded,
-                                values: elem.values,
-                                processedValues: elem.hardcoded
-                                    ? (elem.name === "pwm"
-                                        ? ["Выбор", ...(Array.isArray(elem.values) ? elem.values.map(v => String(v)) : [])]
-                                        : (Array.isArray(elem.values)
-                                            ? elem.values.map(v => String(v))
-                                            : ["Пусто"]))
-                                    : ["Выбор", ...variables.map((v) => `${v.name} (${v.type})`)]
-                            });
-                        }
                         return (
                             <BlockList
                                 systemTitle={elem.name}
@@ -251,7 +259,10 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                     if (!elem.hardcoded && variables.length === 0 && newValue !== "Выбор") {
                                         return;
                                     }
-                                    setFieldValue(elem.name, newValue);
+                                    const clean = !elem.hardcoded && typeof newValue === "string"
+                                        ? newValue.replace(/ \([^)]+\)$/, "")
+                                        : newValue;
+                                    setFieldValue(elem.name, clean);
                                 }}
                             />
                         );

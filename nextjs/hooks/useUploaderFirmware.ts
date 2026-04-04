@@ -55,7 +55,7 @@ export const useUploaderFirmware = (onLog?: (text: string) => void) => {
             await loader.after();
             await transport.disconnect();
 
-            return { ok: true, message: "✅ Прошивка успешно установлена!" };
+            return { ok: true, message: "Прошивка успешно установлена!" };
         } catch (error) {
             return { ok: false, message: "Ошибка прошивки", error }
         }

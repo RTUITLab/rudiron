@@ -17,7 +17,10 @@ export default function BlockList({ title, systemTitle, values, setValue, value:
     const isControlled = controlledValue !== undefined;
     const defaultValue = values.includes("Выбор") ? "Выбор" : (values.includes("Пусто") ? "Пусто" : (values.length > 0 ? values[0] : undefined));
     const currentValue = isControlled ? controlledValue : (internalValue ?? defaultValue);
-    const currentIndex = values.findIndex(v => v === currentValue);
+    const currentIndex = values.findIndex(v =>
+        v === currentValue ||
+        String(v).replace(/ \([^)]+\)$/, "") === String(currentValue ?? "")
+    );
     const selectedIndex = currentIndex >= 0 ? currentIndex : 0;
 
     useEffect(() => {
