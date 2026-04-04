@@ -13,6 +13,7 @@ import {useRouter} from "next/navigation";
 import {useVariables} from "@/context/variables";
 import Modal from "@/components/Modal";
 import FlasherPanel from "@/components/FlasherPanel";
+import { validateWorkspace, type WorkspaceBlock } from "@/src/validation/blockValidator";
 
 interface Props {
     categories: any;
@@ -31,6 +32,12 @@ interface BlockInstance {
     block: Block;
     x: number;
     y: number;
+}
+
+interface PersistedBlockNode extends WorkspaceBlock {
+    x: number;
+    y: number;
+    color: string;
 }
 
 
@@ -203,6 +210,13 @@ export default function Workspace({categories, blocks, projectId}: Props) {
     };
 
     const handleRun = () => {
+        const workspacePayload = buildWorkspacePayload();
+        const validation = validateWorkspace(workspacePayload);
+
+        if (validation.warnings.length > 0) {
+            console.warn("Workspace validation warnings:", validation.warnings);
+        }
+
         const childIds = new Set<number>();
         codeState.forEach((item: CodeType) =>
             item.children.forEach((child: CodeType) => childIds.add(child.id))
@@ -220,7 +234,7 @@ export default function Workspace({categories, blocks, projectId}: Props) {
         generatorCode(code);
     };
 
-    const collectNestedBlocksRecursively = (blocks: any[]): any[] => {
+    const collectNestedBlocksRecursively = (blocks: any[]): PersistedBlockNode[] => {
         return blocks.map(block => {
             const nestedBlocks: Record<string, any[]> = {};
 
@@ -233,7 +247,7 @@ export default function Workspace({categories, blocks, projectId}: Props) {
                 });
             }
 
-            const result: any = {
+            const result: PersistedBlockNode = {
                 id: block.id,
                 type: block.block?.block_name || block.block?.menu_name,
                 x: block.x,
@@ -246,6 +260,33 @@ export default function Workspace({categories, blocks, projectId}: Props) {
             
             return result;
         });
+    };
+
+    const buildWorkspacePayload = (): { blocks: PersistedBlockNode[] } => {
+        const serializedBlocks = workspaceBlocks.map((block): PersistedBlockNode => {
+            const blockNestedBlocks = nestedBlocks[block.id] || {};
+            const processedNestedBlocks: Record<string, PersistedBlockNode[]> = {};
+
+            Object.keys(blockNestedBlocks).forEach((fieldName) => {
+                const fieldBlocks = blockNestedBlocks[fieldName];
+                if (Array.isArray(fieldBlocks) && fieldBlocks.length > 0) {
+                    processedNestedBlocks[fieldName] = collectNestedBlocksRecursively(fieldBlocks);
+                }
+            });
+
+            return {
+                id: block.id,
+                type: block.block.block_name || block.block.menu_name,
+                x: block.x,
+                y: block.y,
+                color: block.color,
+                block: block.block,
+                nestedBlocks: Object.keys(processedNestedBlocks).length > 0 ? processedNestedBlocks : {},
+                fieldValues: blockFieldValues[block.id] || {},
+            };
+        });
+
+        return { blocks: serializedBlocks };
     };
 
     const handleSave = useCallback(async () => {
@@ -269,30 +310,8 @@ export default function Workspace({categories, blocks, projectId}: Props) {
         setSaveStatus(null);
 
         try {
-            const blocksData = workspaceBlocks.map((block) => {
-                const blockNestedBlocks = nestedBlocks[block.id] || {};
-
-                const processedNestedBlocks: Record<string, any[]> = {};
-                Object.keys(blockNestedBlocks).forEach(fieldName => {
-                    const fieldBlocks = blockNestedBlocks[fieldName];
-                    if (Array.isArray(fieldBlocks) && fieldBlocks.length > 0) {
-                        processedNestedBlocks[fieldName] = collectNestedBlocksRecursively(fieldBlocks);
-                    }
-                });
-
-                const blockData = {
-                    id: block.id,
-                    type: block.block.block_name || block.block.menu_name,
-                    x: block.x,
-                    y: block.y,
-                    color: block.color,
-                    block: block.block,
-                    nestedBlocks: Object.keys(processedNestedBlocks).length > 0 ? processedNestedBlocks : {},
-                    fieldValues: blockFieldValues[block.id] || {},
-                };
-                
-                return blockData;
-            });
+            const workspacePayload = buildWorkspacePayload();
+            const blocksData = workspacePayload.blocks;
 
             const targetId = projectId || workflowId;
 

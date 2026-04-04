@@ -27,7 +27,8 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "19.2.3",
     "sass": "^1.97.2",
-    "web-serial-polyfill": "^1.0.15"
+    "web-serial-polyfill": "^1.0.15",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",

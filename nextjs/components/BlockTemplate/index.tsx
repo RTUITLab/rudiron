@@ -15,7 +15,8 @@ interface Props {
     setNewPosition: (id: string, x: number, y: number) => void,
     onChildrenChange?: (blockId: string, childrenByField: Record<string, any[]>) => void,
     initialNestedBlocks?: Record<string, any[]>,
-    initialFieldValues?: Record<string, string | number | undefined>
+    initialFieldValues?: Record<string, string | number | undefined>,
+    onFieldValuesChange?: (fieldValues: Record<string, string | number | undefined>) => void
 }
 
 export default function BlockTemplate({

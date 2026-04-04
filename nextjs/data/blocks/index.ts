@@ -411,8 +411,13 @@ export default function blocksData(): BlocksData {
                         "name": "pwm",
                         "placeholder": "PWM объект",
                         "type": 1,
-                        "hardcoded": false,
-                        "values": []
+                        "hardcoded": true,
+                        "values": [
+                            "pwm0", "pwm2", "pwm4", "pwm5", "pwm12", "pwm13",
+                            "pwm14", "pwm15", "pwm16", "pwm17", "pwm18", "pwm19",
+                            "pwm21", "pwm22", "pwm23", "pwm25", "pwm26", "pwm27",
+                            "pwm32", "pwm33"
+                        ]
                     },
                     {
                         "name": "duty",

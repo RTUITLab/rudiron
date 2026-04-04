@@ -23,26 +23,95 @@ export default function Project() {
     const [dataCategories] = useState<Categories>(categoriesData().categories);
     const [dataBlocks] = useState<Blocks>(blocksData().blocks);
     const [isTour, setIsTour] = useState<boolean>(false);
+
+    // 🚀 Интерактивный тур по рабочему пространству
     const driverObj = driver({
         showProgress: true,
+        allowClose: false,          // Не даём закрыть тур случайно
+        animate: true,              // Плавные анимации
+        opacity: 0.75,             // Приятное затемнение фона
+        padding: 10,               // Отступ вокруг элементов
+        stagePadding: 5,           // Внутренний отступ подсветки
+        nextBtnText: 'Вперёд →',   // Кастомные кнопки
+        prevBtnText: '← Назад',
+        doneBtnText: 'Отлично! ✨',
+        popoverClass: 'custom-driver-popover', // Кастомный класс для стилизации
         steps: [
-            {element: '#header', popover: { title: "Это header", side: "right" }},
-            {element: '#project-name', popover: { title: "Это name project", side: "right" }},
-            {element: '#category', popover: { title: "Это name project", side: "right" }},
-            {element: '#set_variable', popover: { title: "Присвоение значения", description: "Чтобы присвоить переменной значение, перетащите в Главный блок переменную ниже", side: "right" }}
-        ]
-    })
+            {
+                element: '#header',
+                popover: {
+                    title: "🎯 Добро пожаловать!",
+                    description: "Это ваша главная панель управления. Здесь вы найдёте всё необходимое для работы с проектом.",
+                    side: "bottom"
+                }
+            },
+            {
+                element: '#project-name',
+                popover: {
+                    title: "📝 Имя проекта",
+                    description: "Ваш текущий проект называется именно так. Можете изменить название в любой момент — просто кликните по нему!",
+                    side: "right"
+                }
+            },
+            {
+                element: '#category',
+                popover: {
+                    title: "🗂️ Категории блоков",
+                    description: "Все доступные блоки сгруппированы по категориям. Выбирайте нужную и перетаскивайте блоки на рабочую область!",
+                    side: "right"
+                }
+            },
+            {
+                element: '#set_variable',
+                popover: {
+                    title: "💡 Как присвоить значение переменной",
+                    description: "Это просто! Перетащите любой блок из категории слева прямо сюда, в главную область. А я покажу, как это работает ✨",
+                    side: "right"
+                }
+            },
+            {
+                element: '.workspace-area',
+                popover: {
+                    title: "🎨 Ваше рабочее пространство",
+                    description: "Здесь будет строиться ваша логика. Комбинируйте блоки, соединяйте их и создавайте мощные сценарии!",
+                    side: "top"
+                }
+            }
+        ],
+        onNext: (element) => {
+            console.log(`✨ Переход к следующему шагу: ${element?.getAttribute('id') || 'неизвестный элемент'}`);
+        },
+        onPrevious: (element) => {
+            console.log(`🔙 Возврат к шагу: ${element?.getAttribute('id') || 'неизвестный элемент'}`);
+        },
+        onClose: () => {
+            console.log('🎉 Тур завершён! Удачной работы с проектом!');
+            localStorage.setItem('tourCompleted', 'true');
+        }
+    });
 
+    // 🎬 Запускаем тур с небольшой задержкой, чтобы страница успела отрендериться
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsTour(true);
-        }, 3000)
+        const hasSeenTour = localStorage.getItem('tourCompleted');
 
-        return () => clearTimeout(timer);
+        // Показываем тур только если пользователь его ещё не видел
+        if (!hasSeenTour) {
+            const timer = setTimeout(() => {
+                setIsTour(true);
+            }, 1500); // Уменьшил задержку до 1.5 секунд для лучшего UX
+
+            return () => clearTimeout(timer);
+        }
     }, []);
 
+    // 🚀 Запускаем интерактивный гид при активации
     useEffect(() => {
-        if (isTour) driverObj.drive();
+        if (isTour) {
+            // Небольшая задержка для полного рендера DOM
+            setTimeout(() => {
+                driverObj.drive();
+            }, 300);
+        }
     }, [isTour]);
 
     return (
@@ -66,4 +135,3 @@ export default function Project() {
         </BlockProvider>
     );
 }
-

@@ -216,73 +216,91 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
             </div>
 
             <div style={styleColor}>
-                {block.fields.map((elem, index) =>
-                    elem.type === 1 ? (
-                        <BlockList
-                            systemTitle={elem.name}
-                            title={elem.placeholder}
-                            key={"block_list_" + index}
-                            values={
-                                elem.hardcoded
-                                    ? (elem.name === "var-type" 
+                {block.fields.map((elem, index) => {
+                    if (elem.type === 1) {
+                        // Добавьте эту проверку
+                        if (elem.name === "pwm") {
+                            console.log("PWM field:", {
+                                hardcoded: elem.hardcoded,
+                                values: elem.values,
+                                processedValues: elem.hardcoded
+                                    ? (elem.name === "var-type"
                                         ? ["Выбор", ...(Array.isArray(elem.values) ? elem.values.map(v => String(v)) : [])]
-                                        : (Array.isArray(elem.values) 
+                                        : (Array.isArray(elem.values)
                                             ? elem.values.map(v => String(v))
                                             : ["Пусто"]))
                                     : ["Выбор", ...variables.map((v) => `${v.name} (${v.type})`)]
-                            }
-                            value={fieldValues[elem.name]}
-                            setValue={(newValue: string | number) => {
-                                if (!elem.hardcoded && variables.length === 0 && newValue !== "Выбор") {
-                                    return;
+                            });
+                        }
+                        return (
+                            <BlockList
+                                systemTitle={elem.name}
+                                title={elem.placeholder}
+                                key={"block_list_" + index}
+                                values={
+                                    elem.hardcoded
+                                        ? (elem.name === "var-type"
+                                            ? ["Выбор", ...(Array.isArray(elem.values) ? elem.values.map(v => String(v)) : [])]
+                                            : (Array.isArray(elem.values)
+                                                ? elem.values.map(v => String(v))
+                                                : ["Пусто"]))
+                                        : ["Выбор", ...variables.map((v) => `${v.name} (${v.type})`)]
                                 }
-                                setFieldValue(elem.name, newValue);
-                            }}
-                        />
-                    ) : elem.type === 2 ? (
-                        <BlockAttachments
-                            title={elem.placeholder}
-                            key={"block_attachments_" + index}
-                            onChange={(children) =>
-                                setChildrenByField((prev) => ({ ...prev, [elem.name]: children }))
-                            }
-                            onBlocksChange={(blocks) => {
-                                setNestedBlocksByField((prev) => {
-                                    const prevBlocks = prev[elem.name] || [];
-                                    const prevKey = JSON.stringify(prevBlocks);
-                                    const newKey = JSON.stringify(blocks);
-                                    
-                                    if (prevKey !== newKey && onNestedBlocksChange) {
-                                        queueMicrotask(() => {
-                                            onNestedBlocksChange(elem.name, blocks);
-                                        });
+                                value={fieldValues[elem.name]}
+                                setValue={(newValue: string | number) => {
+                                    if (!elem.hardcoded && variables.length === 0 && newValue !== "Выбор") {
+                                        return;
                                     }
-                                    
-                                    return { ...prev, [elem.name]: blocks };
-                                });
-                            }}
-                            onNestedBlocksChange={(blockId, nestedBlocks) => {
-                                setNestedBlocksByField((prev) => {
-                                    const currentBlocks = prev[elem.name] || [];
-                                    const updatedBlocks = currentBlocks.map(block => 
-                                        block.id === blockId 
-                                            ? { ...block, nestedBlocks }
-                                            : block
-                                    );
-                                    
-                                    if (onNestedBlocksChange) {
-                                        queueMicrotask(() => {
-                                            onNestedBlocksChange(elem.name, updatedBlocks);
-                                        });
-                                    }
-                                    
-                                    return { ...prev, [elem.name]: updatedBlocks };
-                                });
-                            }}
-                            initialBlocks={nestedBlocksByField[elem.name] || []}
-                        />
-                    ) : (
-                        elem.type === 3 && (
+                                    setFieldValue(elem.name, newValue);
+                                }}
+                            />
+                        );
+                    } else if (elem.type === 2) {
+                        return (
+                            <BlockAttachments
+                                title={elem.placeholder}
+                                key={"block_attachments_" + index}
+                                onChange={(children) =>
+                                    setChildrenByField((prev) => ({ ...prev, [elem.name]: children }))
+                                }
+                                onBlocksChange={(blocks) => {
+                                    setNestedBlocksByField((prev) => {
+                                        const prevBlocks = prev[elem.name] || [];
+                                        const prevKey = JSON.stringify(prevBlocks);
+                                        const newKey = JSON.stringify(blocks);
+
+                                        if (prevKey !== newKey && onNestedBlocksChange) {
+                                            queueMicrotask(() => {
+                                                onNestedBlocksChange(elem.name, blocks);
+                                            });
+                                        }
+
+                                        return { ...prev, [elem.name]: blocks };
+                                    });
+                                }}
+                                onNestedBlocksChange={(blockId, nestedBlocks) => {
+                                    setNestedBlocksByField((prev) => {
+                                        const currentBlocks = prev[elem.name] || [];
+                                        const updatedBlocks = currentBlocks.map(block =>
+                                            block.id === blockId
+                                                ? { ...block, nestedBlocks }
+                                                : block
+                                        );
+
+                                        if (onNestedBlocksChange) {
+                                            queueMicrotask(() => {
+                                                onNestedBlocksChange(elem.name, updatedBlocks);
+                                            });
+                                        }
+
+                                        return { ...prev, [elem.name]: updatedBlocks };
+                                    });
+                                }}
+                                initialBlocks={nestedBlocksByField[elem.name] || []}
+                            />
+                        );
+                    } else if (elem.type === 3) {
+                        return (
                             <BlockInput
                                 title={elem.placeholder}
                                 systemTitle={elem.name}
@@ -294,9 +312,10 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                 }
                                 onChange={(val) => setFieldValue(elem.name, val)}
                             />
-                        )
-                    )
-                )}
+                        );
+                    }
+                    return null;
+                })}
             </div>
         </div>
     );

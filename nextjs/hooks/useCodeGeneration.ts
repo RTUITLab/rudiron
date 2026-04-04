@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import generatorCode from "@/utils/generatorCode";
 import CodeContext, { CodeType } from "@/context/code";
+import { validateGeneratedTemplate } from "@/src/validation/blockValidator";
 
 export const useCodeGeneration = () => {
     const [formattedCode, setFormattedCode] = useState("");
@@ -16,7 +17,15 @@ export const useCodeGeneration = () => {
 
         const roots = codeState.filter((i: CodeType) => !childIds.has(i.id));
         const rawCode = roots.map((i: CodeType) => i.code).join("%n%%n%");
-        return generatorCode(rawCode);
+        const generatedCode = generatorCode(rawCode);
+        const templateErrors = validateGeneratedTemplate(generatedCode);
+
+        if (templateErrors.length > 0) {
+            console.error("Template validation failed", templateErrors);
+            return "";
+        }
+
+        return generatedCode;
     };
 
     const formatCode = () => {

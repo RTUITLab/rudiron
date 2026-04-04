@@ -3,10 +3,6 @@
 import Style from "./header.module.scss";
 import {useParams, useRouter} from "next/navigation";
 import {useState, useEffect} from "react";
-import Categories from "@/types/categories";
-import categoriesData from "@/data/categories";
-import Blocks from "@/types/blocks";
-import blocksData from "@/data/blocks";
 import Link from "next/link";
 import {getWorkflow} from "@/services/workflow";
 import InputNameProject from "@/components/InputNameProject";

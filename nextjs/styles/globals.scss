@@ -38,7 +38,90 @@
   transform: translateY(1px); /* Pressed effect */
   background-color: rgba(56, 142, 60, 0.3); /* Slightly darker */
 }
+/* Кастомные стили для подсказок driver.js */
+.custom-driver-popover {
+  background: #2d2d2d !important;  /* Серый фон */
+  color: #ffffff !important;        /* Белый текст */
+  border-radius: 12px !important;   /* Скругленные углы */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important; /* Тень для объема */
+}
 
+/* Стили для заголовка */
+.custom-driver-popover .driver-popover-title {
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+/* Стили для описания */
+.custom-driver-popover .driver-popover-description {
+  color: #e0e0e0 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* Стили для кнопок */
+.custom-driver-popover .driver-popover-footer button {
+  background: #4a4a4a !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-driver-popover .driver-popover-footer button:hover {
+  background: #5a5a5a !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Кнопка "Отлично!" */
+.custom-driver-popover .driver-popover-footer .driver-close-btn {
+  background: #3a6ea5 !important;
+}
+
+.custom-driver-popover .driver-popover-footer .driver-close-btn:hover {
+  background: #4a7eb5 !important;
+}
+
+/* Кнопки навигации */
+.custom-driver-popover .driver-popover-footer .driver-next-btn,
+.custom-driver-popover .driver-popover-footer .driver-prev-btn {
+  background: #3a3a3a !important;
+}
+
+/* Стрелка подсказки (треугольник) */
+.custom-driver-popover.driver-popover-arrow-side-left:before,
+.custom-driver-popover.driver-popover-arrow-side-right:before,
+.custom-driver-popover.driver-popover-arrow-side-top:before,
+.custom-driver-popover.driver-popover-arrow-side-bottom:before {
+  border-color: #2d2d2d !important;
+}
+
+/* Прогресс-бар */
+.custom-driver-popover .driver-popover-progress-text {
+  color: #b0b0b0 !important;
+  font-size: 12px !important;
+}
+
+/* Адаптация для темной темы */
+@media (prefers-color-scheme: dark) {
+  .custom-driver-popover {
+    background: #1e1e1e !important;
+  }
+
+  .custom-driver-popover.driver-popover-arrow-side-left:before,
+  .custom-driver-popover.driver-popover-arrow-side-right:before,
+  .custom-driver-popover.driver-popover-arrow-side-top:before,
+  .custom-driver-popover.driver-popover-arrow-side-bottom:before {
+    border-color: #1e1e1e !important;
+  }
+}
 
 body {
   background-color: #2d2e37;
