@@ -1,6 +1,15 @@
 import { prisma } from "@/services/database";
 
+const SYNC_SECRET = process.env.SYNC_SECRET;
+
 export async function POST(req: Request) {
+    if (SYNC_SECRET) {
+        const authHeader = req.headers.get("x-sync-secret");
+        if (authHeader !== SYNC_SECRET) {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+    }
+
     try {
         const body = await req.json();
         const { yandexId, email, displayName, avatarUrl } = body;

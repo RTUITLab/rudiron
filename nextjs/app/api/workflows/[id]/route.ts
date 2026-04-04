@@ -36,7 +36,7 @@ export async function PUT(
 
         const { id } = await params;
         const body = await req.json();
-        const { name, description, blocks, transform, liked } = body;
+        const { name, description, blocks, transform, liked, showTour } = body;
 
         const existingWorkflow = await prisma.workflow.findFirst({
             where: { id, userId: user.id },
@@ -52,6 +52,7 @@ export async function PUT(
             blocks?: any;
             transform?: any;
             liked?: boolean;
+            showTour?: boolean;
         } = {};
 
         if (name !== undefined) {
@@ -79,6 +80,14 @@ export async function PUT(
                 updateData.liked = liked;
             } else {
                 return Response.json({ error: "liked must be a boolean" }, { status: 400 });
+            }
+        }
+
+        if (showTour !== undefined) {
+            if (typeof showTour === "boolean") {
+                updateData.showTour = showTour;
+            } else {
+                return Response.json({ error: "showTour must be a boolean" }, { status: 400 });
             }
         }
 
@@ -128,30 +137,48 @@ export async function PATCH(req: NextRequest) {
         if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
-        const { name } = body;
+        const { name, liked, showTour } = body;
 
         const pathname = req.nextUrl.pathname;
         const id = pathname.split("/").pop();
 
         if (!id) return Response.json({ error: "Workflow ID is required" }, { status: 400 });
 
-        if (!name || typeof name !== "string" || name.trim().length === 0) {
-            return Response.json({ error: "Name is required" }, { status: 400 });
+        const patchData: { name?: string; liked?: boolean; showTour?: boolean } = {};
+
+        if (name !== undefined) {
+            if (typeof name !== "string" || name.trim().length === 0) {
+                return Response.json({ error: "name must be a non-empty string" }, { status: 400 });
+            }
+            patchData.name = name.trim();
+        }
+
+        if (liked !== undefined) {
+            if (typeof liked !== "boolean") {
+                return Response.json({ error: "liked must be a boolean" }, { status: 400 });
+            }
+            patchData.liked = liked;
+        }
+
+        if (showTour !== undefined) {
+            if (typeof showTour !== "boolean") {
+                return Response.json({ error: "showTour must be a boolean" }, { status: 400 });
+            }
+            patchData.showTour = showTour;
+        }
+
+        if (Object.keys(patchData).length === 0) {
+            return Response.json({ error: "No fields to update" }, { status: 400 });
         }
 
         const workflow = await prisma.workflow.update({
-            where: {
-                id,
-                userId: user.id,
-            },
-            data: {
-                name: name.trim(),
-            }
-        })
+            where: { id, userId: user.id },
+            data: patchData,
+        });
 
         return Response.json(workflow);
     } catch (error) {
-        console.error("Error update name workflow:", error);
-        return Response.json({ error: "Failed to update workflow name" }, { status: 500 });
+        console.error("Error patching workflow:", error);
+        return Response.json({ error: "Failed to patch workflow" }, { status: 500 });
     }
 }

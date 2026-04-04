@@ -51,23 +51,32 @@ export default function blocksData(): BlocksData {
                         "type": 3,
                         "hardcoded": false,
                         "values": []
-                    },
+                    }
+                ],
+                "default_code": "import %module-name%",
+                "workspace": false,
+            },
+            {
+                "block_name": "from_import",
+                "menu_name": "from X import Y",
+                "category": "Структура",
+                "fields": [
                     {
-                        "name": "import-type",
-                        "placeholder": "Тип импорта",
-                        "type": 1,
-                        "hardcoded": true,
-                        "values": ["import", "from import"]
+                        "name": "module-name",
+                        "placeholder": "Модуль (например: machine, time)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
                     },
                     {
                         "name": "import-what",
-                        "placeholder": "Что импортировать (для from)",
+                        "placeholder": "Что импортировать (например: Pin, PWM)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
                     }
                 ],
-                "default_code": "%import-type% %module-name%%import-what%",
+                "default_code": "from %module-name% import %import-what%",
                 "workspace": false,
             },
             {

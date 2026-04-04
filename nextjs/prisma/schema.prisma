@@ -25,6 +25,7 @@ model Workflow {
   id          String   @id @default(cuid())
   name        String
   liked       Boolean  @default(false)
+  showTour    Boolean  @default(true)
   description String?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)

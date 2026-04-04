@@ -6,7 +6,6 @@ import MireaGerb from "@/assets/MIREA.png"
 import MainAnim from "@/assets/MainAnim.svg";
 import Image from "next/image";
 import { getUserToken } from "@/services/auth";
-import MainEffect from "@/components/MainEffect";
 
 
 export default function Main() {
@@ -23,7 +22,6 @@ export default function Main() {
 
     return (
         <>
-            {/*<MainEffect/>*/}
             <Image src={MainAnim} alt={"Anim"} className={Style.anim} />
             <Image src={MireaGerb} alt="MireaGerb" className={Style.gerb} />
             <main className={Style.main}>

@@ -28,17 +28,17 @@ export default function generatorCode(rawCode: string): string {
             tabCount++;
         }
 
+        // Увеличиваем уровень отступа ДО вывода строки,
+        // так как %tab% стоит перед первой строкой тела блока
+        indent += tabCount;
+
         // Применяем текущий отступ (но только если строка не пустая)
         if (line.trim() !== "") {
             const indentedLine = "    ".repeat(indent) + line.trimEnd();
             formatted.push(indentedLine);
         } else if (line === "") {
-            // Сохраняем пустые строки как есть (без отступов)
             formatted.push("");
         }
-
-        // Увеличиваем уровень отступа после строки
-        indent += tabCount;
     }
 
     // Объединяем и убираем множественные пустые строки (но оставляем одну)

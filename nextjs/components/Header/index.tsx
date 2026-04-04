@@ -11,7 +11,7 @@ export default function Header() {
     const router = useRouter();
     const { id } = useParams<{ id: string }>();
     const projectId = id;
-    const [userInfo, setUserInfo] = useState<any>({});
+    const [userInfo, setUserInfo] = useState<Record<string, unknown>>({});
     const [nameProject, setNameProject] = useState<string>("");
 
     useEffect(() => {
@@ -28,21 +28,17 @@ export default function Header() {
     }, []);
 
     useEffect(() => {
+        if (!projectId) return;
         let isMounted = true;
         const fetchWorkflow = async () => {
             try {
                 const workflow = await getWorkflow(projectId);
-                if (isMounted) {
-                    setNameProject(workflow.name);
-                }
-            } catch (error) {
-                console.log(error)
+                if (isMounted) setNameProject(workflow.name);
+            } catch {
             }
-        }
+        };
         fetchWorkflow();
-        return () => {
-            isMounted = false;
-        }
+        return () => { isMounted = false; };
     }, [projectId]);
 
     const handleLogout = () => {

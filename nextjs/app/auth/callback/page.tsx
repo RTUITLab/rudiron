@@ -15,21 +15,28 @@ export default function AuthCallback() {
     const [error, setError] = useState<string>("");
 
     useEffect(() => {
+        let isMounted = true;
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        const schedule = (fn: () => void, ms: number) => {
+            const t = setTimeout(fn, ms);
+            timers.push(t);
+        };
+
         const handleAuth = async () => {
             const code = searchParams.get("code");
             const errorParam = searchParams.get("error");
 
             if (errorParam) {
-                setStatus("error");
-                setError("Ошибка авторизации от Yandex");
-                setTimeout(() => router.push("/login"), 3000);
+                if (isMounted) setStatus("error");
+                if (isMounted) setError("Ошибка авторизации от Yandex");
+                schedule(() => { if (isMounted) router.push("/login"); }, 3000);
                 return;
             }
 
             if (!code) {
-                setStatus("error");
-                setError("Код авторизации не получен");
-                setTimeout(() => router.push("/login"), 3000);
+                if (isMounted) setStatus("error");
+                if (isMounted) setError("Код авторизации не получен");
+                schedule(() => { if (isMounted) router.push("/login"); }, 3000);
                 return;
             }
 
@@ -68,9 +75,13 @@ export default function AuthCallback() {
                 localStorage.setItem("user_info", JSON.stringify(userInfo));
 
                 // Синхронизируем пользователя с базой
+                const syncHeaders: Record<string, string> = { "Content-Type": "application/json" };
+                const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET;
+                if (syncSecret) syncHeaders["x-sync-secret"] = syncSecret;
+
                 const syncResponse = await fetch("/api/auth/sync", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: syncHeaders,
                     body: JSON.stringify({
                         yandexId: userInfo.id,
                         email: userInfo.default_email,
@@ -86,26 +97,27 @@ export default function AuthCallback() {
                     // Не блокируем авторизацию, если синхронизация не удалась
                 }
 
-                setStatus("success");
-                
-                // Проверяем, есть ли сохраненный redirect в sessionStorage
+                if (isMounted) setStatus("success");
+
                 const savedRedirect = typeof window !== "undefined" ? sessionStorage.getItem("auth_redirect") : null;
-                if (savedRedirect) {
-                    sessionStorage.removeItem("auth_redirect");
-                }
-                
+                if (savedRedirect) sessionStorage.removeItem("auth_redirect");
+
                 const redirectPath = savedRedirect && savedRedirect !== "/login" ? savedRedirect : "/projects";
-                
-                setTimeout(() => router.push(redirectPath), 1000);
-            } catch (err: any) {
+                schedule(() => { if (isMounted) router.push(redirectPath); }, 1000);
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "Ошибка авторизации";
                 console.error("Auth error:", err);
-                setStatus("error");
-                setError(err.message || "Ошибка авторизации");
-                setTimeout(() => router.push("/login"), 3000);
+                if (isMounted) setStatus("error");
+                if (isMounted) setError(msg);
+                schedule(() => { if (isMounted) router.push("/login"); }, 3000);
             }
         };
 
         handleAuth();
+        return () => {
+            isMounted = false;
+            timers.forEach(clearTimeout);
+        };
     }, [searchParams, router]);
 
     return (

@@ -63,21 +63,26 @@ export default function MainEffect() {
         };
 
 
+        let rafId: number;
+
         const render = (t: number) => {
             ctx.fillStyle = "rgba(0,0,0,0.05)";
             ctx.fillRect(0, 0, w, h);
 
             blobs.forEach((b) => drawBlob(b, t));
-            requestAnimationFrame(render);
+            rafId = requestAnimationFrame(render);
         };
-        requestAnimationFrame(render);
+        rafId = requestAnimationFrame(render);
 
         const resize = () => {
             w = canvas.width = window.innerWidth;
             h = canvas.height = window.innerHeight;
         };
         window.addEventListener("resize", resize);
-        return () => window.removeEventListener("resize", resize);
+        return () => {
+            cancelAnimationFrame(rafId);
+            window.removeEventListener("resize", resize);
+        };
     }, []);
 
     return (

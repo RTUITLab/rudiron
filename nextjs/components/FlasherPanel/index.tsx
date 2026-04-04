@@ -61,9 +61,6 @@ export default function FlasherPanel() {
                 // Также можно сохранить binFile если нужно
                 setBinFile(file);
 
-                console.log('[UI] Загружен файл по умолчанию:', file.name, `(${(file.size / 1024).toFixed(1)} KB)`);
-
-                // Обновляем результат
                 setResult(`Автоматически выбран файл: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
             } catch (error) {
                 console.error('[UI] Ошибка загрузки файла по умолчанию:', error);
@@ -77,28 +74,18 @@ export default function FlasherPanel() {
     const handleConnect = async () => {
         try {
             if (!("serial" in navigator)) {
-                console.warn("Web Serial API не поддерживается");
                 setResult("Web Serial API не поддерживается в этом браузере");
                 return;
             }
 
-            const pythonCode = generateCodeFromBlocks();
-            const formatted = generatorCode(pythonCode);
-            console.log(formatted);
-            setFormattedCode(formatted);
-            console.log(formattedCode);
-            const nav = navigator as any;
+        const code = generateCodeFromBlocks();
+        setFormattedCode(code);
+            const nav = navigator as { serial: { requestPort(): Promise<SerialPort> } };
             const selectedPort: SerialPort = await nav.serial.requestPort();
             if (!selectedPort) return;
 
-            console.log("[UI] Выбран порт:", selectedPort);
-
-            // Открываем порт сразу при подключении
             if (!selectedPort.readable) {
                 await selectedPort.open({ baudRate: 115200 });
-                console.log("[UI] Порт открыт (для REPL)", selectedPort);
-            } else {
-                console.log("[UI] Порт уже открыт (для REPL)", selectedPort);
             }
 
             setPort(selectedPort);
@@ -109,28 +96,14 @@ export default function FlasherPanel() {
         }
     };
 
-    // const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = event.target.files?.[0];
-    //     if (file) {
-    //         if (!file.name.toLowerCase().endsWith('.bin')) {
-    //             setResult("Ошибка: выберите файл с расширением .bin");
-    //             return;
-    //         }
-    //
-    //         setFirmwareFile(file);
-    //         setResult(`Выбран файл: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
-    //     }
-    // };
 
     const stopReadLoop = async () => {
         if (readerRef.current) {
             try {
-                console.log("[UI] Останавливаем readLoop...");
                 await readerRef.current.cancel();
                 readerRef.current.releaseLock();
                 readerRef.current = null;
-            } catch (e) {
-                console.warn("[UI] Ошибка при остановке readLoop:", e);
+            } catch {
             }
         }
     };
@@ -170,14 +143,9 @@ export default function FlasherPanel() {
             });
             setResult(result.message);
 
-            // После успешной прошивки
-            setPort(null);
-            setFirmwareFile(null);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-
             await ensurePortOpen(port);
+            setFirmwareFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (err) {
             console.error("Ошибка прошивки:", err);
             setResult(`Ошибка прошивки: ${err instanceof Error ? err.message : String(err)}`);
@@ -190,9 +158,7 @@ export default function FlasherPanel() {
     const handleDisconnect = async () => {
         if (!port) return;
         try {
-            console.log("[UI] Ручное отключение от порта...");
             await port.close();
-            console.log("[UI] Порт закрыт пользователем");
             setPort(null);
             setResult("Порт отключен");
         } catch (err) {
@@ -230,10 +196,9 @@ export default function FlasherPanel() {
         setInputCommand("");
     };
 
-    const ensurePortOpen = async (port: SerialPort) => {
-        if (!port.readable || !port.writable) {
-            await port.open({ baudRate: 115200 });
-            console.log("[UI] Порт открыт повторно для REPL");
+    const ensurePortOpen = async (p: SerialPort) => {
+        if (!p.readable || !p.writable) {
+            await p.open({ baudRate: 115200 });
         }
     };
 
@@ -377,24 +342,6 @@ export default function FlasherPanel() {
                     <label style={{ fontWeight: "bold", textAlign: "start", marginLeft: "5px", marginBottom: "10px" }}>
                         Отформатированный код
                     </label>
-                {/*
-                    {!isCopied && (
-                        <div onClick={() => copying(formattedCode)} style={{ height: "20px", cursor: "pointer" }}>
-                            <svg viewBox="0 0 24 24" fill="#8f8f8f" height={20}>
-                                <path d="M6.6 11.4c0-2.726 0-4.089.844-4.936S9.644 5.614 12.36 5.614h2.88c2.715 0 4.073 0 4.916.844.844.847.844 2.21.844 4.936v4.819c0 2.726 0 4.089-.844 4.936s-2.201.844-4.916.844h-2.88c-2.715 0-4.073 0-4.916-.844S6.6 18.943 6.6 16.217V11.4z"/>
-                                <path d="M4.172 3.172C3 4.344 3 6.23 3 10v2c0 3.771 0 5.657 1.172 6.828.618.618 1.434.91 2.62 1.048-.191-.84-.191-1.996-.191-3.659V11.4c0-2.726 0-4.089.844-4.936.843-.847 2.201-.847 4.916-.847h2.88c1.652 0 2.801 0 3.638.19-.137-1.194-.43-2.014-1.049-2.632C16.657 2 14.77 2 11 2c-3.771 0-5.657 0-6.828 1.172z" opacity="0.5"/>
-                            </svg>
-                        </div>
-                    )}
-                    {isCopied && (
-                        <div style={{display: "flex", alignItems: "center", gap: "8px", height: "20px", alignContent: "center"}}>
-                            <p style={{margin: 0, fontSize: "14px", color: "#A7A7A7"}}>Сохранено</p>
-                            <svg viewBox="0 0 12 12" fill="#8f8f8f" height={18}>
-                                <path fillRule="evenodd" clipRule="evenodd" d="M6 12A6 6 0 106 0a6 6 0 000 12zm2.576-7.02a.75.75 0 00-1.152-.96L5.45 6.389l-.92-.92A.75.75 0 003.47 6.53l1.5 1.5a.75.75 0 001.106-.05l2.5-3z"/>
-                            </svg>
-                        </div>
-                    )}
-                    */}
                 </div>
 
                 <SimpleCode code={formattedCode} language={"python"} />
@@ -480,8 +427,11 @@ export default function FlasherPanel() {
                         fontFamily: "monospace",
                         lineHeight: "1.4em",
                     }}
-                    dangerouslySetInnerHTML={{ __html: terminalLogs.join("<br>") }}
-                ></div>
+                >
+                    {terminalLogs.map((line, i) => (
+                        <div key={i}>{line}</div>
+                    ))}
+                </div>
 
                 <div style={{ display: "flex", marginTop: "8px", gap: "8px" }}>
                     <input

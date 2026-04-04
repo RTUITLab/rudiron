@@ -1,7 +1,7 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {useParams} from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { VariableProvider } from "@/components/Blocks/Var/VariableContext";
 import { BlockProvider } from "@/components/Blocks/Var/BlockContext";
 import { VariablesProvider } from "@/context/variables";
@@ -14,105 +14,97 @@ import categoriesData from "@/data/categories";
 import ProviderWorkspace from "@/provider/workflow";
 import Style from "./Project.module.scss";
 import Header from "@/components/Header";
+import { patchWorkflowShowTour } from "@/services/workflow";
 import "driver.js/dist/driver.css";
-import {driver} from "driver.js";
+import { driver } from "driver.js";
 
 export default function Project() {
     const { id } = useParams<{ id: string }>();
     const projectId = id;
     const [dataCategories] = useState<Categories>(categoriesData().categories);
     const [dataBlocks] = useState<Blocks>(blocksData().blocks);
-    const [isTour, setIsTour] = useState<boolean>(false);
+    const driverRef = useRef<ReturnType<typeof driver> | null>(null);
+    const tourCompletedRef = useRef(false);
 
-    // 🚀 Интерактивный тур по рабочему пространству
-    const driverObj = driver({
-        showProgress: true,
-        allowClose: false,          // Не даём закрыть тур случайно
-        animate: true,              // Плавные анимации
-        opacity: 0.75,             // Приятное затемнение фона
-        padding: 10,               // Отступ вокруг элементов
-        stagePadding: 5,           // Внутренний отступ подсветки
-        nextBtnText: 'Вперёд →',   // Кастомные кнопки
-        prevBtnText: '← Назад',
-        doneBtnText: 'Отлично! ✨',
-        popoverClass: 'custom-driver-popover', // Кастомный класс для стилизации
-        steps: [
-            {
-                element: '#header',
-                popover: {
-                    title: "🎯 Добро пожаловать!",
-                    description: "Это ваша главная панель управления. Здесь вы найдёте всё необходимое для работы с проектом.",
-                    side: "bottom"
+    const startTour = useCallback(() => {
+        tourCompletedRef.current = false;
+
+        driverRef.current = driver({
+            showProgress: true,
+            allowClose: true,
+            animate: true,
+            opacity: 0.75,
+            padding: 10,
+            stagePadding: 5,
+            nextBtnText: 'Вперёд →',
+            prevBtnText: '← Назад',
+            doneBtnText: 'Готово ✓',
+            popoverClass: 'custom-driver-popover',
+            steps: [
+                {
+                    element: '#header',
+                    popover: {
+                        title: "Добро пожаловать!",
+                        description: "Это ваша главная панель управления. Здесь вы найдёте всё необходимое для работы с проектом.",
+                        side: "bottom",
+                    }
+                },
+                {
+                    element: '#project-name',
+                    popover: {
+                        title: "Имя проекта",
+                        description: "Ваш текущий проект называется именно так. Можете изменить название в любой момент — просто кликните по нему!",
+                        side: "right",
+                    }
+                },
+                {
+                    element: '#category',
+                    popover: {
+                        title: "Категории блоков",
+                        description: "Все доступные блоки сгруппированы по категориям. Выбирайте нужную и перетаскивайте блоки на рабочую область!",
+                        side: "right",
+                    }
+                },
+                {
+                    element: '#set_variable',
+                    popover: {
+                        title: "Как присвоить значение переменной",
+                        description: "Перетащите любой блок из категории слева прямо сюда, в главную область.",
+                        side: "right",
+                    }
+                },
+                {
+                    element: '.workspace-area',
+                    popover: {
+                        title: "Ваше рабочее пространство",
+                        description: "Здесь будет строиться ваша логика. Комбинируйте блоки, соединяйте их и создавайте мощные сценарии!",
+                        side: "top",
+                        onNextClick: () => {
+                            tourCompletedRef.current = true;
+                            driverRef.current?.moveNext();
+                        },
+                    }
+                },
+            ],
+            onDestroyed: async () => {
+                if (tourCompletedRef.current && projectId) {
+                    try {
+                        await patchWorkflowShowTour(projectId, false);
+                    } catch (e) {
+                        console.error("Не удалось сохранить флаг тура:", e);
+                    }
                 }
             },
-            {
-                element: '#project-name',
-                popover: {
-                    title: "📝 Имя проекта",
-                    description: "Ваш текущий проект называется именно так. Можете изменить название в любой момент — просто кликните по нему!",
-                    side: "right"
-                }
-            },
-            {
-                element: '#category',
-                popover: {
-                    title: "🗂️ Категории блоков",
-                    description: "Все доступные блоки сгруппированы по категориям. Выбирайте нужную и перетаскивайте блоки на рабочую область!",
-                    side: "right"
-                }
-            },
-            {
-                element: '#set_variable',
-                popover: {
-                    title: "💡 Как присвоить значение переменной",
-                    description: "Это просто! Перетащите любой блок из категории слева прямо сюда, в главную область. А я покажу, как это работает ✨",
-                    side: "right"
-                }
-            },
-            {
-                element: '.workspace-area',
-                popover: {
-                    title: "🎨 Ваше рабочее пространство",
-                    description: "Здесь будет строиться ваша логика. Комбинируйте блоки, соединяйте их и создавайте мощные сценарии!",
-                    side: "top"
-                }
-            }
-        ],
-        onNext: (element) => {
-            console.log(`✨ Переход к следующему шагу: ${element?.getAttribute('id') || 'неизвестный элемент'}`);
-        },
-        onPrevious: (element) => {
-            console.log(`🔙 Возврат к шагу: ${element?.getAttribute('id') || 'неизвестный элемент'}`);
-        },
-        onClose: () => {
-            console.log('🎉 Тур завершён! Удачной работы с проектом!');
-            localStorage.setItem('tourCompleted', 'true');
-        }
-    });
+        });
 
-    // 🎬 Запускаем тур с небольшой задержкой, чтобы страница успела отрендериться
-    useEffect(() => {
-        const hasSeenTour = localStorage.getItem('tourCompleted');
+        driverRef.current.drive();
+    }, [projectId]);
 
-        // Показываем тур только если пользователь его ещё не видел
-        if (!hasSeenTour) {
-            const timer = setTimeout(() => {
-                setIsTour(true);
-            }, 1500); // Уменьшил задержку до 1.5 секунд для лучшего UX
-
-            return () => clearTimeout(timer);
-        }
-    }, []);
-
-    // 🚀 Запускаем интерактивный гид при активации
-    useEffect(() => {
-        if (isTour) {
-            // Небольшая задержка для полного рендера DOM
-            setTimeout(() => {
-                driverObj.drive();
-            }, 300);
-        }
-    }, [isTour]);
+    const handleShowTour = useCallback((showTour: boolean) => {
+        if (!showTour) return;
+        const timer = setTimeout(() => startTour(), 800);
+        return () => clearTimeout(timer);
+    }, [startTour]);
 
     return (
         <BlockProvider>
@@ -126,6 +118,7 @@ export default function Project() {
                                     categories={dataCategories}
                                     blocks={dataBlocks}
                                     projectId={projectId}
+                                    onShowTour={handleShowTour}
                                 />
                             </div>
                         </div>

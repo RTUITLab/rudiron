@@ -1,6 +1,6 @@
 "use client";
 
-import {getWorkflows, saveWorkflow, deleteWorkflow, WorkflowData} from "@/services/workflow";
+import {getWorkflows, saveWorkflow, updateWorkflowName, deleteWorkflow, WorkflowData} from "@/services/workflow";
 import {FormEvent, useCallback, useEffect, useState} from "react";
 import { useRouter } from "next/navigation";
 import Style from "./Projects.module.scss";
@@ -32,6 +32,7 @@ export default function Projects() {
         hasPrevPage: false
     });
     const [projectName, setProjectName] = useState<string>("");
+    const [showTourOnCreate, setShowTourOnCreate] = useState<boolean>(true);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [modalState, setModalState] = useState<{
@@ -79,6 +80,7 @@ export default function Projects() {
     const closeModal = () => {
         setModalState({ isOpen: false, type: null });
         setProjectName("");
+        setShowTourOnCreate(true);
     };
 
     const loadProjects = useCallback(async (page: number = 1, append: boolean = false) => {
@@ -133,6 +135,7 @@ export default function Projects() {
                 blocks: [],
                 transform: { x: 0, y: 0, scale: 1 },
                 liked: false,
+                showTour: showTourOnCreate,
             });
 
             if (!newProject || !newProject.id || typeof newProject.id !== "string") {
@@ -155,12 +158,7 @@ export default function Projects() {
         }
 
         try {
-            await saveWorkflow({
-                id: modalState.projectId,
-                name: projectName.trim(),
-                blocks: [],
-                liked: false,
-            });
+            await updateWorkflowName(modalState.projectId, projectName.trim());
 
             setProjects(prevProjects =>
                 prevProjects.map(project =>
@@ -205,6 +203,15 @@ export default function Projects() {
                                     placeholder="Введите название проекта"
                                     required
                                     autoFocus
+                                />
+                            </div>
+                            <div className={Style.modal__toggle}>
+                                <label htmlFor="show-tour-toggle">Показывать подсказки?</label>
+                                <input
+                                    id="show-tour-toggle"
+                                    type="checkbox"
+                                    checked={showTourOnCreate}
+                                    onChange={(e) => setShowTourOnCreate(e.target.checked)}
                                 />
                             </div>
                             <div className={Style.modal__buttons}>

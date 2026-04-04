@@ -7,6 +7,7 @@ export interface WorkflowData {
     blocks: any[];
     transform?: { x: number; y: number; scale: number };
     liked?: boolean;
+    showTour?: boolean;
 }
 
 export interface PaginationResponse {
@@ -42,7 +43,8 @@ export async function saveWorkflow(workflow: WorkflowData): Promise<WorkflowData
         description: workflow.description || null,
         blocks: workflow.blocks || [],
         transform: workflow.transform || null,
-        liked: workflow.liked
+        liked: workflow.liked,
+        showTour: workflow.showTour,
     };
 
     try {
@@ -182,6 +184,58 @@ export async function getWorkflow(id: string): Promise<WorkflowData> {
         return await response.json();
     } catch (error: any) {
         if (error.message.includes('Failed to fetch')) {
+            throw new Error('Сервер не доступен. Проверьте подключение к интернету.');
+        }
+        throw error;
+    }
+}
+
+export async function patchWorkflowShowTour(id: string, showTour: boolean): Promise<void> {
+    const token = getUserToken();
+    if (!token) throw new Error('Not authenticated');
+    if (!id) throw new Error('Workflow ID is required');
+
+    try {
+        const response = await fetch(`/api/workflows/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ showTour }),
+        });
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Failed to update showTour');
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('Failed to fetch')) {
+            throw new Error('Сервер не доступен. Проверьте подключение к интернету.');
+        }
+        throw error;
+    }
+}
+
+export async function patchWorkflowLiked(id: string, liked: boolean): Promise<void> {
+    const token = getUserToken();
+    if (!token) throw new Error('Not authenticated');
+    if (!id) throw new Error('Workflow ID is required');
+
+    try {
+        const response = await fetch(`/api/workflows/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ liked }),
+        });
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Failed to update liked');
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('Failed to fetch')) {
             throw new Error('Сервер не доступен. Проверьте подключение к интернету.');
         }
         throw error;

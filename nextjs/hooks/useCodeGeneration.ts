@@ -29,10 +29,9 @@ export const useCodeGeneration = () => {
     };
 
     const formatCode = () => {
-        const pythonCode = generateCodeFromBlocks();
-        const formatted = generatorCode(pythonCode);
-        setFormattedCode(formatted);
-        return formatted;
+        const code = generateCodeFromBlocks();
+        setFormattedCode(code);
+        return code;
     };
 
     return {

@@ -1,9 +1,9 @@
 import Style from "./CardProject.module.scss";
 import { ProjectAvatarSVG } from "../ProjectAvatarSVG";
-import {FormEvent, useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import { CardMenu } from "../CardMenu";
 import {useRouter} from "next/navigation";
-import {saveWorkflow} from "@/services/workflow";
+import {patchWorkflowLiked} from "@/services/workflow";
 
 interface Props {
     id: string | undefined;
@@ -75,17 +75,12 @@ export default function CardProject({id, name, description, liked, onEdit, onDel
 
         try {
             setIsLiked(newLikedState);
-            await saveWorkflow({
-                id: id,
-                name: name,
-                blocks: [],
-                liked: newLikedState,
-            });
+            await patchWorkflowLiked(id, newLikedState);
 
             if (onLikeChange) {
                 onLikeChange(id, newLikedState);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка добавления проекта в избранное:", error);
             setIsLiked(!newLikedState);
         }

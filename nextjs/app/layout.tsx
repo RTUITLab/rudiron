@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
+import { Toaster } from "react-hot-toast";
 import "@/styles/globals.scss";
-import { Russo_One, Jersey_20, JetBrains_Mono } from "next/font/google";
 import "./layout.scss";
-import Script from "next/script";
-const russo = Russo_One({ subsets: ["latin", "cyrillic"], weight: "400" });
-const jersey = Jersey_20({ subsets: ["latin"], weight: "400" });
-const jetbrains = JetBrains_Mono({ subsets: ["latin", "cyrillic"], weight: "400" });
 
 export const metadata: Metadata = {
   title: "KidsCode",
@@ -25,6 +21,7 @@ export default function RootLayout({children}: { children: React.ReactNode; }) {
         </head>
         <body>
           {children}
+          <Toaster position="bottom-center" toastOptions={{ style: { width: "100%", backgroundColor: "#2d2e37", color: "white", borderRadius: "10px", border: "1px solid #3d3e47", padding: "10px" } }} />
         </body>
       </html>
   );

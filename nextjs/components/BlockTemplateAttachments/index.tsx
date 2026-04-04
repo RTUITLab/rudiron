@@ -224,7 +224,7 @@ export default function BlockTemplateAttachments({ color, block, deleteBlock, on
                                 hardcoded: elem.hardcoded,
                                 values: elem.values,
                                 processedValues: elem.hardcoded
-                                    ? (elem.name === "var-type"
+                                    ? (elem.name === "pwm"
                                         ? ["Выбор", ...(Array.isArray(elem.values) ? elem.values.map(v => String(v)) : [])]
                                         : (Array.isArray(elem.values)
                                             ? elem.values.map(v => String(v))

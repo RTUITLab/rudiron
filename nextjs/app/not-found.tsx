@@ -1,26 +1,27 @@
+"use client";
+
 import Styles from "./not-found.module.scss";
 import Link from "next/link";
 import Image from "next/image";
 import anim1 from "@/assets/anim1.svg";
 import Style from "@/app/login/login.module.scss";
 import anim2 from "@/assets/anim2.svg";
+import {useState, useEffect} from "react";
+
+const phrases = [
+    "Ничего интересного здесь нет, можно",
+    "Может скоро и добавим что-то, можно",
+    "Разработчик еще не придумал страницу, можно",
+    "Здесь могла быть ваша реклама. А пока можно",
+    "Упс! Пусто. Зато можно"
+];
 
 export default function Custom404() {
+    const [phrase, setPhrase] = useState(phrases[0]);
 
-    const phrases = [
-        "Ничего интересного здесь нет, можно",
-        "Может скоро и добавим что-то, можно",
-        "Разработчик еще не придумал страницу, можно",
-        "Здесь могла быть ваша реклама. А пока можно",
-        "Упс! Пусто. Зато можно"
-    ]
-
-    function getRandom(max: number): number {
-        // eslint-disable-next-line react-hooks/purity
-        return Math.floor(Math.random() * max);
-    }
-
-
+    useEffect(() => {
+        setPhrase(phrases[Math.floor(Math.random() * phrases.length)]);
+    }, []);
 
     return (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -44,10 +45,10 @@ export default function Custom404() {
                         </h1>
                     </div>
                     <div>
-                        <h2>{phrases[getRandom(phrases.length)]} <Link href={"/"}>вернуться</Link> обратно</h2>
+                        <h2>{phrase} <Link href={"/"}>вернуться</Link> обратно</h2>
                     </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }

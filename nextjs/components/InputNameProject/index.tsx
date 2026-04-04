@@ -1,5 +1,5 @@
 import {updateWorkflowName} from "@/services/workflow";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import Style from "./InputNameProject.module.scss";
 
 interface Props {
@@ -12,9 +12,12 @@ export default function InputNameProject({id, name, onNameUpdated}: Props) {
     const [editMode, setEditMode] = useState(false);
     const [currentName, setCurrentName] = useState(name);
 
+    useEffect(() => {
+        setCurrentName(name);
+    }, [name]);
+
     const saveName = async () => {
         if (currentName.trim() === name) {
-            console.log('1')
             setEditMode(false);
             return;
         }
@@ -22,17 +25,13 @@ export default function InputNameProject({id, name, onNameUpdated}: Props) {
         try {
             await updateWorkflowName(id, currentName);
             setEditMode(false);
-            console.log('2')
-            if (onNameUpdated) {
-                onNameUpdated(currentName);
-            }
+            onNameUpdated(currentName);
         } catch (error) {
-            console.log('3');
-            console.log(error);
+            console.error(error);
             setCurrentName(name);
             setEditMode(false);
         }
-    }
+    };
 
     return (
         <div id={"project-name"}>
