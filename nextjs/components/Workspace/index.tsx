@@ -15,6 +15,7 @@ import { useWorkspacePersistence } from "./useWorkspacePersistence";
 import Categories from "@/types/categories";
 import Blocks from "@/types/blocks";
 import toast from "react-hot-toast";
+import Ideas from "../Ideas";
 
 interface Props {
     categories: Categories;
@@ -33,6 +34,7 @@ export default function Workspace({ categories, blocks, projectId, onShowTour }:
     const [mouse, setMouse] = useState<Vec2>({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
     const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+    const [isIdeasModalOpen, setIsIdeasModalOpen] = useState(false);
     const refContainer = useRef<HTMLDivElement | null>(null);
     const refLast = useRef<Vec2>({ x: 0, y: 0 });
     const refCanDrop = useRef(false);
@@ -226,8 +228,21 @@ export default function Workspace({ categories, blocks, projectId, onShowTour }:
                     </svg>
                 </div>
 
-                <button onClick={handleRun} className={Style.RunButton}>▶</button>
+                <div className={Style.Buttons}>
+                    <button onClick={() => setIsIdeasModalOpen(true)} className={Style.IdeasButton}>💡</button>
+                    <button onClick={handleRun} className={Style.RunButton}>▶</button>
+                </div>
             </div>
+
+            <Modal
+                isOpen={isIdeasModalOpen}
+                onClose={() => setIsIdeasModalOpen(false)}
+                title="Идеи для реализации"
+                showCloseButton={true}
+                isWorkspace={true}
+            >
+                <Ideas />
+            </Modal>
 
             <Modal
                 isOpen={isCodeModalOpen}

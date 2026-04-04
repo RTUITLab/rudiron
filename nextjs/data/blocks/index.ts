@@ -248,7 +248,6 @@ export default function blocksData(): BlocksData {
                 "default_code": "if %if-cond%:%n%%tab%%if-body%%n%%-tab%else:%n%%tab%%else-body%%n%%-tab%",
                 "workspace": false,
             },
-
             {
                 "block_name": "for_loop",
                 "menu_name": "Цикл for",
@@ -263,7 +262,7 @@ export default function blocksData(): BlocksData {
                     },
                     {
                         "name": "for-range",
-                        "placeholder": "Диапазон (например range(10))",
+                        "placeholder": "Диапазон. Например: range(0, 1024) или range(1023, -1, -1)",
                         "type": 3,
                         "hardcoded": false,
                         "values": []
@@ -277,6 +276,50 @@ export default function blocksData(): BlocksData {
                     }
                 ],
                 "default_code": "for %for-i% in %for-range%:%n%%tab%%for-body%%n%%-tab%",
+                "workspace": false,
+            },
+            {
+                "block_name": "for_loop_range_step",
+                "menu_name": "Цикл for (с range и шагом)",
+                "category": "Циклы",
+                "fields": [
+                    {
+                        "name": "var_name",
+                        "placeholder": "Переменная (i)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "start_val",
+                        "placeholder": "Начало (0 или 1023)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "end_val",
+                        "placeholder": "Конец (1024 или -1)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "step_val",
+                        "placeholder": "Шаг (опционально, например 1 или -1)",
+                        "type": 3,
+                        "hardcoded": false,
+                        "values": []
+                    },
+                    {
+                        "name": "body_code",
+                        "placeholder": "Тело цикла",
+                        "type": 2,
+                        "hardcoded": false,
+                        "values": []
+                    }
+                ],
+                "default_code": "for %var_name% in range(%start_val%, %end_val%%if step_val%%, %step_val%%endif%):%n%%tab%%body_code%%n%%-tab%",
                 "workspace": false,
             },
             {
